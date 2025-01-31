@@ -1,0 +1,140 @@
+version: '3.8'
+
+services:
+  # База данных PostgreSQL
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: symfony
+      POSTGRES_PASSWORD: symfony
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql:ro
+    networks:
+      - symfony_network
+
+  # Redis для кэширования
+  redis:
+    image: redis:7
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - symfony_network
+
+  # Product Service (Symfony + PHP-FPM)
+  php-fpm-product-service:
+    build:
+      context: ./services/product-service
+      dockerfile: Dockerfile
+    container_name: php-fpm-product-service
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./services/product-service:/var/www  # Монтируем код Symfony
+#      - ./services/product-service/public:/var/www/public  # Монтируем папку public отдельно (для Nginx)
+#      - ./services/product-service/var:/var/www/var  # Монтируем кеш и логи
+    environment:
+      REDIS_HOST: redis
+    networks:
+      - symfony_network
+
+  # Nginx для Product Service
+  nginx-product-service:
+    image: nginx:latest
+    container_name: nginx-product-service
+    restart: always
+    ports:
+      - "52000:80"  # Product Service доступен по http://localhost:52000
+    volumes:
+      - ./docker/nginx/product-service.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - php-fpm-product-service
+    networks:
+      symfony_network:
+        aliases:
+          - product-service
+
+  # Order Service (Symfony + PHP-FPM)
+  php-fpm-order-service:
+    build:
+      context: ./services/order-service
+      dockerfile: Dockerfile
+    container_name: php-fpm-order-service
+    restart: always
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./services/order-service:/var/www  # Монтируем код Symfony
+#      - ./services/order-service/public:/var/www/public  # Монтируем папку public отдельно (для Nginx)
+#      - ./services/order-service/var:/var/www/var  # Монтируем кеш и логи
+    environment:
+      REDIS_HOST: redis
+    networks:
+      - symfony_network
+
+  # Nginx для Order Service
+  nginx-order-service:
+    image: nginx:latest
+    container_name: nginx-order-service
+    restart: always
+    ports:
+      - "53000:80"  # Order Service доступен по http://localhost:53000
+    volumes:
+      - ./docker/nginx/order-service.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - php-fpm-order-service
+    networks:
+      symfony_network:
+        aliases:
+          - order-service
+
+  # API Gateway (Symfony + PHP-FPM)
+  php-fpm-api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: php-fpm-api-gateway
+    restart: always
+    depends_on:
+      - php-fpm-product-service
+      - php-fpm-order-service
+      - nginx-product-service
+      - nginx-order-service
+    volumes:
+      - ./services/api-gateway:/var/www  # Монтируем код Symfony
+      - ./services/api-gateway/public:/var/www/public  # Монтируем папку public отдельно (для Nginx)
+      - ./services/api-gateway/var:/var/www/var  # Монтируем кеш и логи
+    networks:
+      - symfony_network
+
+  # Nginx для API Gateway
+  nginx-api-gateway:
+    image: nginx:latest
+    container_name: nginx-api-gateway
+    restart: always
+    ports:
+      - "51000:80"  # API Gateway доступен по http://localhost:51000
+    volumes:
+      - ./docker/nginx/api-gateway.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - php-fpm-api-gateway
+    networks:
+      symfony_network:
+        aliases:
+          - api-gateway
+
+networks:
+  symfony_network:
+    driver: bridge
+
+volumes:
+  pg_data:
