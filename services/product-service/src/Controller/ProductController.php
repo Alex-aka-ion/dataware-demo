@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\DTO\ProductRequest;
 use App\Entity\Product;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -39,7 +40,7 @@ final class ProductController extends AbstractController
         $name = $request->query->get('name');
 
         if (!$name) {
-            return new JsonResponse(['error' => 'Parameter "name" is required'], Response::HTTP_BAD_REQUEST);
+            return new JsonResponse(['error' => 'Параметр "name" обязателен'], Response::HTTP_BAD_REQUEST);
         }
 
         $products = $productRepository->findByName($name);
@@ -54,7 +55,7 @@ final class ProductController extends AbstractController
         $product = $this->productRepository->find($id);
 
         if (!$product) {
-            return $this->json(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => 'Продукт не найден'], Response::HTTP_NOT_FOUND);
         }
 
         return $this->json($product);
@@ -66,20 +67,30 @@ final class ProductController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        if (!$data || !isset($data['name'], $data['price'], $data['categories'])) {
-            return $this->json(['error' => 'Invalid request data'], Response::HTTP_BAD_REQUEST);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return $this->json(['error' => 'Некорректный формат JSON'], Response::HTTP_BAD_REQUEST);
         }
 
-        $product = new Product();
-        $product->setName($data['name']);
-        $product->setDescription($data['description'] ?? null);
-        $product->setPrice((float)$data['price']);
-        $product->setCategories($data['categories']);
+        // Использование DTO для валидации данных
+        $productRequest = new ProductRequest(
+            $data['name'] ?? '',
+            (float) ($data['price'] ?? 0),
+            $data['categories'] ?? [],
+            $data['description'] ?? ''
+        );
 
-        $errors = $validator->validate($product);
+        // Валидация DTO
+        $errors = $validator->validate($productRequest);
         if (count($errors) > 0) {
-            return $this->json($errors, Response::HTTP_BAD_REQUEST);
+            return $this->json(['errors' => $errors], Response::HTTP_BAD_REQUEST);
         }
+
+        // Создание объекта Product на основе данных DTO
+        $product = new Product();
+        $product->setName(strip_tags($productRequest->name));
+        $product->setDescription(strip_tags($productRequest->description));
+        $product->setPrice($productRequest->price);
+        $product->setCategories($productRequest->categories);
 
         $this->entityManager->persist($product);
         $this->entityManager->flush();
@@ -94,19 +105,32 @@ final class ProductController extends AbstractController
         $product = $this->productRepository->find($id);
 
         if (!$product) {
-            return $this->json(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => 'Продукт не найден'], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);
-        if (!$data) {
-            return $this->json(['error' => 'Invalid request data'], Response::HTTP_BAD_REQUEST);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return $this->json(['error' => 'Некорректный формат JSON'], Response::HTTP_BAD_REQUEST);
+        }
+
+        // Использование DTO для валидации
+        $productRequest = new ProductRequest(
+            $data['name'] ?? null,
+            isset($data['price']) ? (float) $data['price'] : null,
+            $data['categories'] ?? null,
+            $data['description'] ?? null
+        );
+
+        $errors = $validator->validate($productRequest, null, ['update']);
+        if (count($errors) > 0) {
+            return $this->json(['errors' => (string) $errors], Response::HTTP_BAD_REQUEST);
         }
 
         if (isset($data['name'])) {
-            $product->setName($data['name']);
+            $product->setName(strip_tags($productRequest->name));
         }
         if (isset($data['description'])) {
-            $product->setDescription($data['description']);
+            $product->setDescription(strip_tags($productRequest->description));
         }
         if (isset($data['price'])) {
             $product->setPrice((float)$data['price']);
@@ -132,7 +156,7 @@ final class ProductController extends AbstractController
         $product = $this->productRepository->find($id);
 
         if (!$product) {
-            return $this->json(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => 'Продукт не найден'], Response::HTTP_NOT_FOUND);
         }
 
         $this->entityManager->remove($product);

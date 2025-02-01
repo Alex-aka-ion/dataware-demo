@@ -2,6 +2,10 @@
 
 namespace App\Controller;
 
+use App\DTO\OrderItemRequest;
+use App\DTO\OrderRequest;
+use App\DTO\SearchByProductIdRequest;
+use App\DTO\UpdateOrderRequest;
 use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Repository\OrderRepository;
@@ -38,34 +42,39 @@ class OrderController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        // Валидация JSON-данных
-        if (!$data || !isset($data['deliveryAddress'], $data['products'])) {
-            return $this->json(['error' => 'Invalid request data'], Response::HTTP_BAD_REQUEST);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return $this->json(['error' => 'Invalid JSON format'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $products = array_map(
+            fn($product) => new OrderItemRequest($product['productId'] ?? '', $product['quantity'] ?? 0),
+            $data['products'] ?? []
+        );
+
+        $orderRequest = new OrderRequest($data['deliveryAddress'] ?? '', $products);
+
+        // Валидация данных DTO
+        $errors = $validator->validate($orderRequest);
+        if (count($errors) > 0) {
+            return $this->json(['errors' => $errors], Response::HTTP_BAD_REQUEST);
         }
 
         // Создаём заказ
         $order = new Order();
-        $order->setDeliveryAddress($data['deliveryAddress']);
+        $order->setDeliveryAddress(strip_tags($data['deliveryAddress']));
 
         // Создаём список товаров
         $orderItems = [];
         $allErrors = [];
 
-        foreach ($data['products'] as $key => $productData) {
+        foreach ($data['products'] as $productData) {
             $orderItem = new OrderItem();
 
-            $productId = $productData['productId'] ?? null;
-            $quantity = (int) $productData['quantity'] ?? null;
+            $productId = $productData['productId'];
+            $quantity = (int) $productData['quantity'];
 
             $orderItem->setProductId($productId);
             $orderItem->setQuantity($quantity);
-
-            // Валидация конкретного товара
-            $itemErrors = $validator->validate($orderItem, null, ['OrderItem']); // Не проверяем тут цену
-            if (count($itemErrors) > 0) {
-                $allErrors = array_merge($allErrors, iterator_to_array($itemErrors));
-                continue; // Пропускаем продукт с ошибками
-            }
 
             // Проверяем наличие и цену товар через product-service
             try {
@@ -86,7 +95,7 @@ class OrderController extends AbstractController
             $orderItem->setOrder($order);
             $orderItems[] = $orderItem;
 
-            $priceErrors = $validator->validate($orderItem, null, ['StrictValidation']); // Тут проверяем уже цену товара
+            $priceErrors = $validator->validate($orderItem, null, ['StrictValidation']); // Тут проверяем цену товара
             if (count($priceErrors) > 0) {
                 $allErrors = array_merge($allErrors, iterator_to_array($priceErrors));
             }
@@ -113,12 +122,15 @@ class OrderController extends AbstractController
     }
 
     #[Route('/search', methods: ['GET'])]
-    public function searchByProduct(Request $request): JsonResponse
+    public function searchByProductId(Request $request, ValidatorInterface $validator): JsonResponse
     {
         $productId = $request->query->get('productId');
 
-        if (!$productId) {
-            return $this->json(['error' => 'Parameter "productId" is required'], Response::HTTP_BAD_REQUEST);
+        $searchRequest = new SearchByProductIdRequest($productId ?? '');
+
+        $errors = $validator->validate($searchRequest);
+        if (count($errors) > 0) {
+            return $this->json(['errors' => $errors], Response::HTTP_BAD_REQUEST);
         }
 
         $orders = $this->orderRepository->findByProductId($productId);
@@ -133,55 +145,55 @@ class OrderController extends AbstractController
         $order = $this->orderRepository->find($id);
 
         if (!$order) {
-            return $this->json(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => 'Заказ не найден'], Response::HTTP_NOT_FOUND);
         }
 
-        return $this->json([
-            'id' => $order->getId(),
-            'deliveryAddress' => $order->getDeliveryAddress(),
-            'createdAt' => $order->getCreatedAt(),
-            'orderItems' => array_map(fn($item) => [
-                'productId' => $item->getProductId(),
-                'quantity' => $item->getQuantity(),
-                'price' => $item->getPrice()
-            ], $order->getOrderItems()->toArray())
-        ]);
+        return $this->json($order, context: ['groups' => 'order:read']);
     }
 
     // Обновить заказ (менять можно только адрес доставки)
-    #[Route('/{id}', methods: ['PUT'])]
-    public function updateOrder(string $id, Request $request): JsonResponse
+    #[Route('/{id}', requirements: ['id' => '[0-9a-fA-F-]{36}'], methods: ['PUT'])]
+    public function updateOrder(string $id, Request $request, ValidatorInterface $validator): JsonResponse
     {
         $order = $this->orderRepository->find($id);
 
         if (!$order) {
-            return $this->json(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => 'Заказ не найден'], Response::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);
-        if (!$data || !isset($data['deliveryAddress'])) {
-            return $this->json(['error' => 'Invalid request data'], Response::HTTP_BAD_REQUEST);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return $this->json(['error' => 'Некорректный формат JSON'], Response::HTTP_BAD_REQUEST);
         }
 
-        $order->setDeliveryAddress($data['deliveryAddress']);
+        $updateOrderRequest = new UpdateOrderRequest(
+            $data['deliveryAddress'] ?? ''
+        );
+
+        $errors = $validator->validate($updateOrderRequest);
+        if (count($errors) > 0) {
+            return $this->json(['errors' => (string) $errors], Response::HTTP_BAD_REQUEST);
+        }
+
+        $order->setDeliveryAddress(strip_tags($updateOrderRequest->deliveryAddress));
         $this->entityManager->flush();
 
-        return $this->json(['message' => 'Order updated successfully']);
+        return $this->json(['message' => 'Адрес доставки успешно обновлен']);
     }
 
     // Удалить заказ
-    #[Route('/{id}', methods: ['DELETE'])]
+    #[Route('/{id}', requirements: ['id' => '[0-9a-fA-F-]{36}'], methods: ['DELETE'])]
     public function deleteOrder(string $id): JsonResponse
     {
         $order = $this->orderRepository->find($id);
 
         if (!$order) {
-            return $this->json(['error' => 'Order not found'], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => 'Заказ не найден'], Response::HTTP_NOT_FOUND);
         }
 
         $this->entityManager->remove($order);
         $this->entityManager->flush();
 
-        return $this->json(['message' => 'Order deleted successfully'], Response::HTTP_NO_CONTENT);
+        return $this->json(['message' => 'Заказ удален успешно'], Response::HTTP_NO_CONTENT);
     }
 }

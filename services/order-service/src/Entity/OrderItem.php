@@ -27,17 +27,17 @@ class OrderItem
     #[Assert\NotBlank(message: "Идентификатор товара обязателен", groups: ["OrderItem"])]
     #[Assert\Uuid(message: "Неправильный UUID формат для productId", groups: ["OrderItem"])]
     #[Groups(["order:read"])]
-    private ?string $productId;
+    private string $productId;
 
     #[ORM\Column(type: "integer")]
     #[Assert\Positive(message: "Количество должно быть больше 0", groups: ["OrderItem"])]
     #[Groups(["order:read"])]
-    private ?int $quantity;
+    private int $quantity;
 
     #[ORM\Column(type: "integer")]
     #[Assert\Positive(message: "Цена должна быть положительным числом", groups: ["StrictValidation"])]
     #[Groups(["order:read"])]
-    private ?int $price; // Цена в момент заказа
+    private int $price; // Цена в момент заказа
 
     public function getId(): ?string
     {
@@ -55,12 +55,12 @@ class OrderItem
         return $this;
     }
 
-    public function getProductId(): ?string
+    public function getProductId(): string
     {
         return $this->productId;
     }
 
-    public function setProductId(?string $productId): self
+    public function setProductId(string $productId): self
     {
         $this->productId = $productId;
         return $this;
@@ -71,7 +71,7 @@ class OrderItem
         return $this->quantity;
     }
 
-    public function setQuantity(?int $quantity): self
+    public function setQuantity(int $quantity): self
     {
         $this->quantity = $quantity;
         return $this;
@@ -82,7 +82,7 @@ class OrderItem
         return $this->price / 100;
     }
 
-    public function setPrice(?float $price): self
+    public function setPrice(float $price): self
     {
         $this->price = (int) ($price * 100);
         return $this;
