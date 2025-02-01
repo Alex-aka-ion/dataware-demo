@@ -54,28 +54,25 @@ class OrderController extends AbstractController
         foreach ($data['products'] as $key => $productData) {
             $orderItem = new OrderItem();
 
-            if (!isset($productData['productId'])) {
-                return $this->json(['error' => "Product ID is missing in item #$key"], Response::HTTP_BAD_REQUEST);
-            }
-
-            $productId = $productData['productId'];
-            $quantity = (int) $productData['quantity'];
+            $productId = $productData['productId'] ?? null;
+            $quantity = (int) $productData['quantity'] ?? null;
 
             $orderItem->setProductId($productId);
             $orderItem->setQuantity($quantity);
 
-            $itemErrors = $validator->validate($orderItem, null, ['OrderItem']);
+            // Валидация конкретного товара
+            $itemErrors = $validator->validate($orderItem, null, ['OrderItem']); // Не проверяем тут цену
             if (count($itemErrors) > 0) {
                 $allErrors = array_merge($allErrors, iterator_to_array($itemErrors));
                 continue; // Пропускаем продукт с ошибками
             }
 
-            // Проверяем товар через product-service
+            // Проверяем наличие и цену товар через product-service
             try {
                 $productResponse = $this->httpClient->request('GET', "http://product-service/api/products/{$productId}");
 
                 if ($productResponse->getStatusCode() !== 200) {
-                    $allErrors[] = $this->json(['error' => "Product {$productId} not found"], Response::HTTP_BAD_REQUEST);
+                    $allErrors[] = $this->json(['error' => "Product {$productId} not found in product-service"], Response::HTTP_BAD_REQUEST);
                     continue;
                 }
 
@@ -89,13 +86,13 @@ class OrderController extends AbstractController
             $orderItem->setOrder($order);
             $orderItems[] = $orderItem;
 
-            $priceErrors = $validator->validate($orderItem, null, ['StrictValidation']);
+            $priceErrors = $validator->validate($orderItem, null, ['StrictValidation']); // Тут проверяем уже цену товара
             if (count($priceErrors) > 0) {
                 $allErrors = array_merge($allErrors, iterator_to_array($priceErrors));
             }
         }
 
-        // Валидация заказа и товаров через Symfony Validator
+        // Полная валидация заказа и товаров
         $orderErrors = $validator->validate($order);
         if (count($orderErrors) > 0) {
             $allErrors = array_merge($allErrors, iterator_to_array($orderErrors));

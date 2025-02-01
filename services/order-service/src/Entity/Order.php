@@ -29,7 +29,7 @@ class Order
         max: 255, maxMessage: "Адрес не может превышать 255 символов"
     )]
     #[Groups(["order:read"])]
-    private string $deliveryAddress;
+    private ?string $deliveryAddress;
 
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: "order", cascade: ["persist", "remove"])]
     #[Assert\Valid] // Валидируем вложенные объекты OrderItem
@@ -56,7 +56,7 @@ class Order
         return $this->deliveryAddress;
     }
 
-    public function setDeliveryAddress(string $deliveryAddress): self
+    public function setDeliveryAddress(?string $deliveryAddress): self
     {
         $this->deliveryAddress = $deliveryAddress;
         return $this;
