@@ -2,7 +2,28 @@
 namespace App\DTO;
 
 use Symfony\Component\Validator\Constraints as Assert;
+use OpenApi\Annotations as OA;
 
+/**
+ * @OA\Schema(
+ *     schema="OrderRequest",
+ *     title="Запрос на создание заказа",
+ *     description="Данные для создания нового заказа",
+ *     required={"deliveryAddress", "products"},
+ *     @OA\Property(
+ *         property="deliveryAddress",
+ *         type="string",
+ *         description="Адрес доставки",
+ *         example="123 улица, город, страна"
+ *     ),
+ *     @OA\Property(
+ *         property="products",
+ *         type="array",
+ *         description="Список товаров в заказе",
+ *         @OA\Items(ref="#/components/schemas/OrderItemRequest")
+ *     )
+ * )
+ */
 class OrderRequest
 {
     #[Assert\NotBlank(message: "Адрес доставки обязателен.")]

@@ -7,7 +7,28 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
+use OpenApi\Annotations as OA;
 
+/**
+ * @OA\Schema(
+ *     schema="Product",
+ *     title="Product",
+ *     description="Модель продукта",
+ *     type="object",
+ *     required={"name", "price", "categories"},
+ *     @OA\Property(property="id", type="string", format="uuid", description="Уникальный идентификатор продукта"),
+ *     @OA\Property(property="name", type="string", maxLength=255, description="Название продукта"),
+ *     @OA\Property(property="description", type="string", maxLength=4000, description="Описание продукта"),
+ *     @OA\Property(property="price", type="number", format="float", description="Цена продукта"),
+ *     @OA\Property(
+ *         property="categories",
+ *         type="array",
+ *         @OA\Items(type="string"),
+ *         description="Список категорий"
+ *     ),
+ *     @OA\Property(property="createdAt", type="string", format="date-time", description="Дата создания")
+ * )
+ */
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
 {
@@ -27,7 +48,7 @@ class Product
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Assert\Length(
-        max: 4000, maxMessage: "Описание не может быть длиннее 4000 символов"
+        max: 1000, maxMessage: "Описание не может быть длиннее 1000 символов"
     )]
     private ?string $description = null;
 

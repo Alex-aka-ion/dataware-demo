@@ -16,8 +16,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use OpenApi\Annotations as OA;
 
 #[Route('/api/orders', name: 'order_')]
 class OrderController extends AbstractController
@@ -28,7 +28,19 @@ class OrderController extends AbstractController
         private readonly OrderRepository $orderRepository
     ) {}
 
-    // Получить списка всех заказов
+    /**
+     * Получить спискок всех заказов
+     *
+     * @OA\Get(
+     *     path="/api/orders",
+     *     summary="Получить список всех заказов",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Список заказов",
+     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Order"))
+     *     )
+     * )
+     */
     #[Route('', methods: ['GET'])]
     public function getOrders(): JsonResponse
     {
@@ -37,6 +49,27 @@ class OrderController extends AbstractController
         return $this->json($orders, context: ['groups' => 'order:read']);
     }
 
+    /**
+     * Создать новый заказ
+     *
+     * @OA\Post(
+     *     path="/api/orders",
+     *     summary="Создать новый заказ",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/OrderRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Заказ успешно создан",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Order created successfully"),
+     *             @OA\Property(property="orderId", type="string", format="uuid")
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Ошибка валидации")
+     * )
+     */
     #[Route('', methods: ['POST'])]
     public function create(Request $request, ValidatorInterface $validator): JsonResponse
     {
@@ -121,6 +154,26 @@ class OrderController extends AbstractController
         return $this->json(['message' => 'Order created successfully', 'orderId' => $order->getId()], Response::HTTP_CREATED);
     }
 
+    /**
+     * Найти заказы по ID товара
+     *
+     * @OA\Get(
+     *     path="/api/orders/search",
+     *     summary="Найти заказы по ID товара",
+     *     @OA\Parameter(
+     *         name="productId",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Список заказов с указанным товаром",
+     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Order"))
+     *     ),
+     *     @OA\Response(response=400, description="Некорректные данные запроса")
+     * )
+     */
     #[Route('/search', methods: ['GET'])]
     public function searchByProductId(Request $request, ValidatorInterface $validator): JsonResponse
     {
@@ -138,7 +191,26 @@ class OrderController extends AbstractController
         return $this->json($orders, context: ['groups' => 'order:read']);
     }
 
-    // Получить заказ по ID
+    /**
+     * Получить заказ по ID
+     *
+     * @OA\Get(
+     *     path="/api/orders/{id}",
+     *     summary="Получить заказ по ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Информация о заказе",
+     *         @OA\JsonContent(ref="#/components/schemas/Order")
+     *     ),
+     *     @OA\Response(response=404, description="Заказ не найден")
+     * )
+     */
     #[Route('/{id}', requirements: ['id' => '[0-9a-fA-F-]{36}'], methods: ['GET'])]
     public function getOrder(string $id): JsonResponse
     {
@@ -151,7 +223,31 @@ class OrderController extends AbstractController
         return $this->json($order, context: ['groups' => 'order:read']);
     }
 
-    // Обновить заказ (менять можно только адрес доставки)
+    /**
+     * Обновить адрес доставки
+     *
+     * @OA\Put(
+     *     path="/api/orders/{id}",
+     *     summary="Обновить адрес доставки",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/UpdateOrderRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Адрес доставки успешно обновлен",
+     *         @OA\JsonContent(@OA\Property(property="message", type="string", example="Адрес доставки успешно обновлен"))
+     *     ),
+     *     @OA\Response(response=404, description="Заказ не найден"),
+     *     @OA\Response(response=400, description="Ошибка валидации")
+     * )
+     */
     #[Route('/{id}', requirements: ['id' => '[0-9a-fA-F-]{36}'], methods: ['PUT'])]
     public function updateOrder(string $id, Request $request, ValidatorInterface $validator): JsonResponse
     {
@@ -181,7 +277,25 @@ class OrderController extends AbstractController
         return $this->json(['message' => 'Адрес доставки успешно обновлен']);
     }
 
-    // Удалить заказ
+    /**
+     * Удалить заказ
+     *
+     * @OA\Delete(
+     *     path="/api/orders/{id}",
+     *     summary="Удалить заказ",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\Response(
+     *         response=204,
+     *         description="Заказ удален успешно"
+     *     ),
+     *     @OA\Response(response=404, description="Заказ не найден")
+     * )
+     */
     #[Route('/{id}', requirements: ['id' => '[0-9a-fA-F-]{36}'], methods: ['DELETE'])]
     public function deleteOrder(string $id): JsonResponse
     {

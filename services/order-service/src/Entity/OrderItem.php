@@ -7,7 +7,19 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints\GroupSequence;
+use OpenApi\Annotations as OA;
 
+/**
+ * @OA\Schema(
+ *     schema="OrderItem",
+ *     title="Order Item",
+ *     description="Модель элемента заказа",
+ *     @OA\Property(property="id", type="string", format="uuid", description="Идентификатор элемента заказа"),
+ *     @OA\Property(property="productId", type="string", format="uuid", description="Идентификатор продукта"),
+ *     @OA\Property(property="quantity", type="integer", description="Количество товара"),
+ *     @OA\Property(property="price", type="number", format="float", description="Цена товара в момент заказа")
+ * )
+ */
 #[ORM\Entity(repositoryClass: OrderItemRepository::class)]
 #[GroupSequence(["OrderItem", "StrictValidation"])] // Группы валидации: сначала "OrderItem", потом "StrictValidation"
 class OrderItem

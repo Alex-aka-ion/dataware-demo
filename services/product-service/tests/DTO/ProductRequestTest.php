@@ -55,4 +55,17 @@ class ProductRequestTest extends TestCase
         $errors = $this->validator->validate($productRequest);
         $this->assertGreaterThan(0, count($errors), 'Ожидаются ошибки из-за отрицательной цены.');
     }
+
+    public function testEmptyCategories(): void
+    {
+        $productRequest = new ProductRequest(
+            name: 'Laptop',
+            price: 1000,
+            categories: [],
+            description: 'No categories provided'
+        );
+
+        $errors = $this->validator->validate($productRequest);
+        $this->assertGreaterThan(0, count($errors), 'Ожидаются ошибки из-за отсутствия категорий.');
+    }
 }

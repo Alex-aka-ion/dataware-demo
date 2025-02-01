@@ -8,6 +8,7 @@
          bootstrap="tests/bootstrap.php"
          stopOnFailure="false"
          failOnWarning="true"
+         testdox="true"
 >
     <php>
         <env name="APP_ENV" value="test" force="true" />

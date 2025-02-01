@@ -10,7 +10,24 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
+use OpenApi\Annotations as OA;
 
+/**
+ * @OA\Schema(
+ *     schema="Order",
+ *     title="Order",
+ *     description="Модель заказа",
+ *     @OA\Property(property="id", type="string", format="uuid", description="Идентификатор заказа"),
+ *     @OA\Property(property="deliveryAddress", type="string", description="Адрес доставки"),
+ *     @OA\Property(
+ *         property="orderItems",
+ *         type="array",
+ *         @OA\Items(ref="#/components/schemas/OrderItem"),
+ *         description="Список товаров в заказе"
+ *     ),
+ *     @OA\Property(property="createdAt", type="string", format="date-time", description="Дата создания заказа")
+ * )
+ */
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 #[ORM\Table(name: "orders")]  // Меняем название таблицы, слово order - ключевое в postgres
 class Order
