@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 
 #[AsController]
 #[Route('/api/products', name: 'product_')]
@@ -27,19 +27,17 @@ final class ProductController extends AbstractController
     {
     }
 
-    /**
-     * Получить список всех продуктов
-     *
-     * @OA\Get(
-     *     path="/api/products",
-     *     summary="Получить список всех продуктов",
-     *     @OA\Response(
-     *         response=200,
-     *         description="Список продуктов",
-     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Product"))
-     *     )
-     * )
-     */
+    #[OA\Get(
+        path: '/api/products',
+        summary: 'Получить список всех продуктов',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Список продуктов',
+                content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/Product'))
+            )
+        ]
+    )]
     #[Route('', methods: ['GET'])]
     public function index(): JsonResponse
     {
@@ -47,23 +45,24 @@ final class ProductController extends AbstractController
         return $this->json($products);
     }
 
-    /**
-     * Поиск продуктов по имени
-     *
-     * @OA\Get(
-     *     path="/api/products/search",
-     *     summary="Поиск продуктов по имени",
-     *     @OA\Parameter(
-     *         name="name",
-     *         in="query",
-     *         description="Имя продукта",
-     *         required=true,
-     *         @OA\Schema(type="string")
-     *     ),
-     *     @OA\Response(response=200, description="Результаты поиска"),
-     *     @OA\Response(response=400, description="Ошибка запроса")
-     * )
-     */
+
+    #[OA\Get(
+        path: '/api/products/search',
+        summary: 'Поиск продуктов по имени',
+        parameters: [
+            new OA\Parameter(
+                name: 'name',
+                description: 'Имя продукта',
+                in: 'query',
+                required: true,
+                schema: new OA\Schema(type: 'string')
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Результаты поиска'),
+            new OA\Response(response: 400, description: 'Ошибка запроса')
+        ]
+    )]
     #[Route('/search', methods: ['GET'])]
     public function searchByName(Request $request, ProductRepository $productRepository): JsonResponse
     {
@@ -78,22 +77,23 @@ final class ProductController extends AbstractController
         return $this->json($products, Response::HTTP_OK);
     }
 
-    /**
-     * Получить продукт по ID
-     *
-     * @OA\Get(
-     *     path="/api/products/{id}",
-     *     summary="Получить продукт по ID",
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Response(response=200, description="Информация о продукте"),
-     *     @OA\Response(response=404, description="Продукт не найден")
-     * )
-     */
+
+    #[OA\Get(
+        path: '/api/products/{id}',
+        summary: 'Получить продукт по ID',
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string', format: 'uuid')
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Информация о продукте'),
+            new OA\Response(response: 404, description: 'Продукт не найден')
+        ]
+    )]
     #[Route('/{id}', requirements: ['id' => '[0-9a-fA-F-]{36}'], methods: ['GET'])]
     public function show(string $id): JsonResponse
     {
@@ -106,20 +106,19 @@ final class ProductController extends AbstractController
         return $this->json($product);
     }
 
-    /**
-     * Создать новый продукт
-     *
-     * @OA\Post(
-     *     path="/api/products",
-     *     summary="Создать новый продукт",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/ProductRequest")
-     *     ),
-     *     @OA\Response(response=201, description="Продукт создан"),
-     *     @OA\Response(response=400, description="Ошибка валидации")
-     * )
-     */
+
+    #[OA\Post(
+        path: '/api/products',
+        summary: 'Создать новый продукт',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/ProductRequest')
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Продукт создан'),
+            new OA\Response(response: 400, description: 'Ошибка валидации')
+        ]
+    )]
     #[Route('', methods: ['POST'])]
     public function create(Request $request, ValidatorInterface $validator): JsonResponse
     {
@@ -156,26 +155,26 @@ final class ProductController extends AbstractController
         return $this->json($product, Response::HTTP_CREATED);
     }
 
-    /**
-     * Обновить продукт
-     *
-     * @OA\Put(
-     *     path="/api/products/{id}",
-     *     summary="Обновить продукт",
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/ProductRequest")
-     *     ),
-     *     @OA\Response(response=200, description="Продукт обновлён"),
-     *     @OA\Response(response=404, description="Продукт не найден")
-     * )
-     */
+    #[OA\Put(
+        path: '/api/products/{id}',
+        summary: 'Обновить продукт',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(ref: '#/components/schemas/ProductRequest')
+        ),
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string', format: 'uuid')
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Продукт обновлён'),
+            new OA\Response(response: 404, description: 'Продукт не найден')
+        ]
+    )]
     #[Route('/{id}', methods: ['PUT'])]
     public function update(string $id, Request $request, ValidatorInterface $validator): JsonResponse
     {
@@ -226,22 +225,23 @@ final class ProductController extends AbstractController
         return $this->json($product);
     }
 
-    /**
-     * Удалить продукт
-     *
-     * @OA\Delete(
-     *     path="/api/products/{id}",
-     *     summary="Удалить продукт",
-     *     @OA\Parameter(
-     *         name="id",
-     *         in="path",
-     *         required=true,
-     *         @OA\Schema(type="string", format="uuid")
-     *     ),
-     *     @OA\Response(response=204, description="Продукт удалён"),
-     *     @OA\Response(response=404, description="Продукт не найден")
-     * )
-     */
+
+    #[OA\Delete(
+        path: '/api/products/{id}',
+        summary: 'Удалить продукт',
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string', format: 'uuid')
+            )
+        ],
+        responses: [
+            new OA\Response(response: 204, description: 'Продукт удалён'),
+            new OA\Response(response: 404, description: 'Продукт не найден')
+        ]
+    )]
     #[Route('/{id}', methods: ['DELETE'])]
     public function delete(string $id): JsonResponse
     {

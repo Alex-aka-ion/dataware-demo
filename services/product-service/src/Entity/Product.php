@@ -7,28 +7,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 
-/**
- * @OA\Schema(
- *     schema="Product",
- *     title="Product",
- *     description="Модель продукта",
- *     type="object",
- *     required={"name", "price", "categories"},
- *     @OA\Property(property="id", type="string", format="uuid", description="Уникальный идентификатор продукта"),
- *     @OA\Property(property="name", type="string", maxLength=255, description="Название продукта"),
- *     @OA\Property(property="description", type="string", maxLength=4000, description="Описание продукта"),
- *     @OA\Property(property="price", type="number", format="float", description="Цена продукта"),
- *     @OA\Property(
- *         property="categories",
- *         type="array",
- *         @OA\Items(type="string"),
- *         description="Список категорий"
- *     ),
- *     @OA\Property(property="createdAt", type="string", format="date-time", description="Дата создания")
- * )
- */
+#[OA\Schema(
+    title: "Product",
+    description: "Модель продукта",
+    required: ["name", "price", "categories"]
+)]
 #[ORM\Entity(repositoryClass: ProductRepository::class)]
 class Product
 {
@@ -36,6 +21,11 @@ class Product
     #[ORM\GeneratedValue(strategy: "CUSTOM")]
     #[ORM\Column(type: "uuid", unique: true)]
     #[ORM\CustomIdGenerator(class: "doctrine.uuid_generator")]
+    #[OA\Property(
+        description: "Уникальный идентификатор продукта",
+        type: "string",
+        format: "uuid"
+    )]
     private ?Uuid $id = null;
 
     #[ORM\Column(length: 255)]
@@ -44,17 +34,35 @@ class Product
         min: 3, minMessage: "Название должно быть не менее 3 символов",
         max: 255, maxMessage: "Название должно быть не более 255 символов"
     )]
+    #[OA\Property(
+        description: "Название продукта",
+        type: "string",
+        maxLength: 255,
+        example: "Ноутбук ASUS"
+    )]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Assert\Length(
         max: 1000, maxMessage: "Описание не может быть длиннее 1000 символов"
     )]
+    #[OA\Property(
+        description: "Описание продукта",
+        type: "string",
+        maxLength: 1000,
+        example: "Мощный игровой ноутбук с 16 ГБ оперативной памяти и SSD на 512 ГБ."
+    )]
     private ?string $description = null;
 
     #[ORM\Column(type: "integer")]
     #[Assert\Positive(message: "Цена должна быть положительным числом")]
     #[Assert\LessThanOrEqual(value: 100000000, message: "Цена не может превышать 100 000 000")]
+    #[OA\Property(
+        description: "Цена продукта",
+        type: "number",
+        format: "float",
+        example: 1499.99
+    )]
     private ?int $price = null;
 
     #[ORM\Column(type: "json")]
@@ -63,9 +71,21 @@ class Product
         new Assert\NotBlank(message: "Категория не может быть пустой"),
         new Assert\Length(max: 100, maxMessage: "Категория не может быть длиннее 100 символов")
     ])]
+    #[OA\Property(
+        description: "Список категорий",
+        type: "array",
+        items: new OA\Items(type: "string"),
+        example: ["Электроника", "Компьютеры"]
+    )]
     private array $categories = [];
 
     #[ORM\Column(type: "datetime_immutable")]
+    #[OA\Property(
+        description: "Дата создания",
+        type: "string",
+        format: "date-time",
+        example: "2024-05-01T12:34:56Z"
+    )]
     private ?\DateTimeImmutable $createdAt = null;
 
     public function __construct()

@@ -10,24 +10,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 
-/**
- * @OA\Schema(
- *     schema="Order",
- *     title="Order",
- *     description="Модель заказа",
- *     @OA\Property(property="id", type="string", format="uuid", description="Идентификатор заказа"),
- *     @OA\Property(property="deliveryAddress", type="string", description="Адрес доставки"),
- *     @OA\Property(
- *         property="orderItems",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/OrderItem"),
- *         description="Список товаров в заказе"
- *     ),
- *     @OA\Property(property="createdAt", type="string", format="date-time", description="Дата создания заказа")
- * )
- */
+#[OA\Schema(
+    title: "Order",
+    description: "Информация о заказе",
+    required: ["deliveryAddress", "orderItems"]
+)]
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 #[ORM\Table(name: "orders")]  // Меняем название таблицы, слово order - ключевое в postgres
 class Order
@@ -37,6 +26,12 @@ class Order
     #[ORM\Column(type: "uuid", unique: true)]
     #[ORM\CustomIdGenerator(class: "doctrine.uuid_generator")]
     #[Groups(["order:read"])]
+    #[OA\Property(
+        property: "id",
+        description: "Идентификатор заказа",
+        type: "string",
+        format: "uuid"
+    )]
     private ?Uuid $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -46,15 +41,32 @@ class Order
         max: 255, maxMessage: "Адрес не может превышать 255 символов"
     )]
     #[Groups(["order:read"])]
+    #[OA\Property(
+        property: "deliveryAddress",
+        description: "Адрес доставки",
+        type: "string"
+    )]
     private string $deliveryAddress;
 
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: "order", cascade: ["persist", "remove"])]
     #[Assert\Valid] // Валидируем вложенные объекты OrderItem
     #[Groups(["order:read"])]
+    #[OA\Property(
+        property: "orderItems",
+        description: "Список товаров в заказе",
+        type: "array",
+        items: new OA\Items(ref: "#/components/schemas/OrderItem")
+    )]
     private Collection $orderItems;
 
     #[ORM\Column(type: "datetime_immutable")]
     #[Groups(["order:read"])]
+    #[OA\Property(
+        property: "createdAt",
+        description: "Дата создания заказа",
+        type: "string",
+        format: "date-time"
+    )]
     private \DateTimeImmutable $createdAt;
 
     public function __construct()

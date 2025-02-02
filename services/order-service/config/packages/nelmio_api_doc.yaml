@@ -7,3 +7,11 @@ nelmio_api_doc:
     areas: # to filter documented areas
         path_patterns:
             - ^/api(?!/doc$) # Accepts routes under /api except /api/doc
+    models:
+        names:
+            - { alias: Order, type: App\Entity\Order }
+            - { alias: OrderItem, type: App\Entity\OrderItem }
+            - { alias: OrderRequest, type: App\DTO\OrderRequest }
+            - { alias: OrderItemRequest, type: App\DTO\OrderItemRequest }
+            - { alias: UpdateOrderRequest, type: App\DTO\UpdateOrderRequest }
+            - { alias: SearchByProductIdRequest, type: App\DTO\SearchByProductIdRequest }

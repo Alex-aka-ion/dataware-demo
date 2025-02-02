@@ -7,21 +7,15 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints\GroupSequence;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 
-/**
- * @OA\Schema(
- *     schema="OrderItem",
- *     title="Order Item",
- *     description="Модель элемента заказа",
- *     @OA\Property(property="id", type="string", format="uuid", description="Идентификатор элемента заказа"),
- *     @OA\Property(property="productId", type="string", format="uuid", description="Идентификатор продукта"),
- *     @OA\Property(property="quantity", type="integer", description="Количество товара"),
- *     @OA\Property(property="price", type="number", format="float", description="Цена товара в момент заказа")
- * )
- */
 #[ORM\Entity(repositoryClass: OrderItemRepository::class)]
 #[GroupSequence(["OrderItem", "StrictValidation"])] // Группы валидации: сначала "OrderItem", потом "StrictValidation"
+#[OA\Schema(
+    title: "OrderItem",
+    description: "Информация о товаре в заказе",
+    required: ["id", "productId", "quantity", "price"]
+)]
 class OrderItem
 {
     #[ORM\Id]
@@ -29,6 +23,7 @@ class OrderItem
     #[ORM\Column(type: "uuid", unique: true)]
     #[ORM\CustomIdGenerator(class: "doctrine.uuid_generator")]
     #[Groups(["order:read"])]
+    #[OA\Property(description: "Идентификатор элемента заказа", type: "string", format: "uuid")]
     private ?Uuid $id = null;
 
     #[ORM\ManyToOne(targetEntity: Order::class, inversedBy: "orderItems")]
@@ -39,16 +34,19 @@ class OrderItem
     #[Assert\NotBlank(message: "Идентификатор товара обязателен", groups: ["OrderItem"])]
     #[Assert\Uuid(message: "Неправильный UUID формат для productId", groups: ["OrderItem"])]
     #[Groups(["order:read"])]
+    #[OA\Property(description: "UUID идентификатор товара", type: "string", format: "uuid")]
     private string $productId;
 
     #[ORM\Column(type: "integer")]
     #[Assert\Positive(message: "Количество должно быть больше 0", groups: ["OrderItem"])]
     #[Groups(["order:read"])]
+    #[OA\Property(description: "Количество товара", type: "integer", minimum: 1)]
     private int $quantity;
 
     #[ORM\Column(type: "integer")]
     #[Assert\Positive(message: "Цена должна быть положительным числом", groups: ["StrictValidation"])]
     #[Groups(["order:read"])]
+    #[OA\Property(description: "Цена товара в момент заказа", type: "number", format: "float")]
     private int $price; // Цена в момент заказа
 
     public function getId(): ?string
