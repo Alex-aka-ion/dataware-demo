@@ -11,6 +11,7 @@ use OpenApi\Attributes as OA;
 )]
 class ProductRequest
 {
+    #[Assert\Type(type: "string", message: "Название должно быть строкой.")]
     #[Assert\NotBlank(message: "Название продукта обязательно.")]
     #[Assert\Length(
         min: 3,
@@ -27,6 +28,7 @@ class ProductRequest
     )]
     public mixed $name;
 
+    #[Assert\Type(type: "string", message: "Описание должно быть строкой.")]
     #[Assert\Length(
         max: 1000,
         maxMessage: "Описание не может превышать 1000 символов."
@@ -40,6 +42,7 @@ class ProductRequest
     public mixed $description = null;
 
     #[Assert\NotNull(message: "Цена продукта обязательна.")]
+    #[Assert\Type(type: "numeric", message: "Цена должна быть числом.")]
     #[Assert\Positive(message: "Цена должна быть положительным числом.")]
     #[Assert\LessThanOrEqual(value: 100000000, message: "Цена не может превышать 100 000 000")]
     #[OA\Property(
