@@ -20,9 +20,9 @@ class SearchByProductIdRequest
         format: "uuid",
         example: "0194bd9a-d8b5-7de7-873d-db4907a13836"
     )]
-    public string $productId;
+    public mixed $productId;
 
-    public function __construct(string $productId)
+    public function __construct(mixed $productId)
     {
         $this->productId = $productId;
     }

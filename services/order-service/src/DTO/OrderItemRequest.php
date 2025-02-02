@@ -19,7 +19,7 @@ class OrderItemRequest
         type: "string",
         format: "uuid"
     )]
-    public string $productId;
+    public mixed $productId;
 
     #[Assert\NotNull(message: "Количество товара обязательно.")]
     #[Assert\Positive(message: "Количество товара должно быть больше 0.")]
@@ -29,9 +29,9 @@ class OrderItemRequest
         type: "integer",
         minimum: 1
     )]
-    public int $quantity;
+    public mixed $quantity;
 
-    public function __construct(string $productId, int $quantity)
+    public function __construct(mixed $productId, mixed $quantity)
     {
         $this->productId = $productId;
         $this->quantity = $quantity;

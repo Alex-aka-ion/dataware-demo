@@ -18,7 +18,7 @@ class OrderRequest
         type: "string",
         example: "123 улица, город, страна"
     )]
-    public string $deliveryAddress;
+    public mixed $deliveryAddress;
 
     /**
      * @var OrderItemRequest[]
@@ -32,9 +32,9 @@ class OrderRequest
         type: "array",
         items: new OA\Items(ref: "#/components/schemas/OrderItemRequest")
     )]
-    public array $products;
+    public mixed $products;
 
-    public function __construct(string $deliveryAddress, array $products)
+    public function __construct(mixed $deliveryAddress, mixed $products)
     {
         $this->deliveryAddress = $deliveryAddress;
         $this->products = $products;

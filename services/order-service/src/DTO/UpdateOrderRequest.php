@@ -26,9 +26,9 @@ class UpdateOrderRequest
         minLength: 5,
         example: "ул. Пушкина, д. 10, кв. 5"
     )]
-    public string $deliveryAddress;
+    public mixed $deliveryAddress;
 
-    public function __construct(string $deliveryAddress)
+    public function __construct(mixed $deliveryAddress)
     {
         $this->deliveryAddress = $deliveryAddress;
     }
