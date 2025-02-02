@@ -12,6 +12,7 @@ use OpenApi\Attributes as OA;
 class OrderItemRequest
 {
     #[Assert\NotBlank(message: "Идентификатор товара обязателен.")]
+    #[Assert\Type(type: "string", message: "Идентификатор товара должен быть строкой.")]
     #[Assert\Uuid(message: "Неверный формат UUID для идентификатора товара.")]
     #[OA\Property(
         property: "productId",
@@ -22,6 +23,7 @@ class OrderItemRequest
     public mixed $productId;
 
     #[Assert\NotNull(message: "Количество товара обязательно.")]
+    #[Assert\Type(type: "integer", message: "Количество товара должно быть целым числом.")]
     #[Assert\Positive(message: "Количество товара должно быть больше 0.")]
     #[OA\Property(
         property: "quantity",

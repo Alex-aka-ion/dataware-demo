@@ -81,11 +81,11 @@ class OrderController extends AbstractController
         }
 
         $products = array_map(
-            fn($product) => new OrderItemRequest($product['productId'] ?? '', $product['quantity'] ?? 0),
+            fn($product) => new OrderItemRequest($product['productId'] ?? null, $product['quantity'] ?? null),
             $data['products'] ?? []
         );
 
-        $orderRequest = new OrderRequest($data['deliveryAddress'] ?? '', $products);
+        $orderRequest = new OrderRequest($data['deliveryAddress'] ?? null, $products);
 
         // Валидация данных DTO
         $errors = $validator->validate($orderRequest);

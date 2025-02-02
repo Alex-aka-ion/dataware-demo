@@ -12,6 +12,7 @@ use OpenApi\Attributes as OA;
 class SearchByProductIdRequest
 {
     #[Assert\NotBlank(message: "Параметр productId обязателен.")]
+    #[Assert\Type(type: "string", message: "Идентификатор товара должен быть строкой.")]
     #[Assert\Uuid(message: "Неверный формат UUID для productId.")]
     #[OA\Property(
         property: "productId",

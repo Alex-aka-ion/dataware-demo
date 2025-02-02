@@ -12,6 +12,7 @@ use OpenApi\Attributes as OA;
 class OrderRequest
 {
     #[Assert\NotBlank(message: "Адрес доставки обязателен.")]
+    #[Assert\Type(type: "string", message: "Адрес доставки должен быть строкой.")]
     #[OA\Property(
         property: "deliveryAddress",
         description: "Адрес доставки",
