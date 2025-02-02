@@ -6,6 +6,7 @@ use App\Entity\Product;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+// Unit-тесты сущности Product
 class ProductTest extends KernelTestCase
 {
     private ValidatorInterface $validator;
@@ -76,13 +77,13 @@ class ProductTest extends KernelTestCase
         $product = (new Product())
             ->setName('Dell XPS 13')
             ->setPrice(1299.99)
-            ->setDescription(str_repeat('A', 4001)) // Слишком длинное описание
+            ->setDescription(str_repeat('A', 1001)) // Слишком длинное описание
             ->setCategories(['Ultrabooks']);
 
         $errors = $this->validator->validate($product);
         $this->assertGreaterThan(0, count($errors));
 
         $errorMessages = array_map(fn($error) => $error->getMessage(), iterator_to_array($errors));
-        $this->assertContains('Описание не может быть длиннее 4000 символов', $errorMessages);
+        $this->assertContains('Описание не может быть длиннее 1000 символов', $errorMessages);
     }
 }

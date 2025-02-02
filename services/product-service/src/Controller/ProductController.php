@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use OpenApi\Attributes as OA;
 
@@ -94,9 +95,14 @@ final class ProductController extends AbstractController
             new OA\Response(response: 404, description: 'Продукт не найден')
         ]
     )]
-    #[Route('/{id}', requirements: ['id' => '[0-9a-fA-F-]{36}'], methods: ['GET'])]
+    #[Route('/{id}', methods: ['GET'])]
     public function show(string $id): JsonResponse
     {
+        // Проверка корректности UUID
+        if (!Uuid::isValid($id)) {
+            return $this->json(['error' => 'Некорректный формат UUID'], Response::HTTP_BAD_REQUEST);
+        }
+
         $product = $this->productRepository->find($id);
 
         if (!$product) {
@@ -105,7 +111,6 @@ final class ProductController extends AbstractController
 
         return $this->json($product);
     }
-
 
     #[OA\Post(
         path: '/api/products',
@@ -130,10 +135,10 @@ final class ProductController extends AbstractController
 
         // Использование DTO для валидации данных
         $productRequest = new ProductRequest(
-            $data['name'] ?? '',
-            (float) ($data['price'] ?? 0),
+            $data['name'] ?? null,
+            (float) ($data['price'] ?? null),
             $data['categories'] ?? [],
-            $data['description'] ?? ''
+            $data['description'] ?? null
         );
 
         // Валидация DTO
@@ -178,6 +183,11 @@ final class ProductController extends AbstractController
     #[Route('/{id}', methods: ['PUT'])]
     public function update(string $id, Request $request, ValidatorInterface $validator): JsonResponse
     {
+        // Проверка корректности UUID
+        if (!Uuid::isValid($id)) {
+            return $this->json(['error' => 'Некорректный формат UUID'], Response::HTTP_BAD_REQUEST);
+        }
+
         $product = $this->productRepository->find($id);
 
         if (!$product) {
@@ -192,14 +202,14 @@ final class ProductController extends AbstractController
         // Использование DTO для валидации
         $productRequest = new ProductRequest(
             $data['name'] ?? null,
-            isset($data['price']) ? (float) $data['price'] : null,
-            $data['categories'] ?? null,
+            $data['price'] ?? null,
+            $data['categories'] ?? [],
             $data['description'] ?? null
         );
 
-        $errors = $validator->validate($productRequest, null, ['update']);
+        $errors = $validator->validate($productRequest);
         if (count($errors) > 0) {
-            return $this->json(['errors' => (string) $errors], Response::HTTP_BAD_REQUEST);
+            return $this->json(['errors' => $errors], Response::HTTP_BAD_REQUEST);
         }
 
         if (isset($data['name'])) {
@@ -225,7 +235,6 @@ final class ProductController extends AbstractController
         return $this->json($product);
     }
 
-
     #[OA\Delete(
         path: '/api/products/{id}',
         summary: 'Удалить продукт',
@@ -245,6 +254,11 @@ final class ProductController extends AbstractController
     #[Route('/{id}', methods: ['DELETE'])]
     public function delete(string $id): JsonResponse
     {
+        // Проверка корректности UUID
+        if (!Uuid::isValid($id)) {
+            return $this->json(['error' => 'Некорректный формат UUID'], Response::HTTP_BAD_REQUEST);
+        }
+
         $product = $this->productRepository->find($id);
 
         if (!$product) {

@@ -5,6 +5,7 @@ use App\DTO\ProductRequest;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;
 
+// Unit-тесты DTO
 class ProductRequestTest extends TestCase
 {
     private $validator;

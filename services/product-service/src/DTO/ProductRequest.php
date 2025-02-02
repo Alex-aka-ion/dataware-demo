@@ -25,7 +25,7 @@ class ProductRequest
         minLength: 3,
         example: "Ноутбук ASUS"
     )]
-    public string $name;
+    public mixed $name;
 
     #[Assert\Length(
         max: 1000,
@@ -37,7 +37,7 @@ class ProductRequest
         maxLength: 1000,
         example: "Мощный игровой ноутбук."
     )]
-    public ?string $description = null;
+    public mixed $description = null;
 
     #[Assert\NotNull(message: "Цена продукта обязательна.")]
     #[Assert\Positive(message: "Цена должна быть положительным числом.")]
@@ -49,7 +49,7 @@ class ProductRequest
         minimum: 0,
         example: 1499.99
     )]
-    public float $price;
+    public mixed $price;
 
     #[Assert\NotNull(message: "Категории обязательны.")]
     #[Assert\Type(type: "array", message: "Категории должны быть массивом.")]
@@ -64,9 +64,9 @@ class ProductRequest
         items: new OA\Items(type: "string", example: "Электроника"),
         example: ["Электроника", "Компьютеры"]
     )]
-    public array $categories;
+    public mixed $categories;
 
-    public function __construct(string $name, float $price, array $categories, ?string $description = null)
+    public function __construct(mixed $name, mixed $price, mixed $categories, mixed $description = null)
     {
         $this->name = $name;
         $this->price = $price;
