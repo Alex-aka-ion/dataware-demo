@@ -60,10 +60,10 @@ class OrderController extends AbstractController
         responses: [
             new OA\Response(
                 response: 201,
-                description: 'Заказ успешно создан',
+                description: 'Заказ создан успешно',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: 'message', type: 'string', example: 'Order created successfully'),
+                        new OA\Property(property: 'message', type: 'string', example: 'Заказ создан успешно'),
                         new OA\Property(property: 'orderId', type: 'string', format: 'uuid')
                     ]
                 )
@@ -77,7 +77,7 @@ class OrderController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            return $this->json(['error' => 'Invalid JSON format'], Response::HTTP_BAD_REQUEST);
+            return $this->json(['error' => 'Некорректный формат JSON'], Response::HTTP_BAD_REQUEST);
         }
 
         $products = array_map(
@@ -115,7 +115,7 @@ class OrderController extends AbstractController
                 $productResponse = $this->httpClient->request('GET', "http://product-service/api/products/{$productId}");
 
                 if ($productResponse->getStatusCode() !== 200) {
-                    $allErrors[] = $this->json(['error' => "Product {$productId} not found in product-service"], Response::HTTP_BAD_REQUEST);
+                    $allErrors[] = $this->json(['error' => "Продукт с ID {$productId} не найден в product-service"], Response::HTTP_BAD_REQUEST);
                     continue;
                 }
 
@@ -123,7 +123,7 @@ class OrderController extends AbstractController
                 $orderItem->setPrice((float) $productInfo['price']);
 
             } catch (\Exception $e) {
-                return $this->json(['error' => 'Product service is unavailable. Please try again later.'], Response::HTTP_SERVICE_UNAVAILABLE);
+                return $this->json(['error' => 'Product-service недоступен. Пожалуйста, попробуйте позже.'], Response::HTTP_SERVICE_UNAVAILABLE);
             }
 
             $orderItem->setOrder($order);
@@ -152,7 +152,7 @@ class OrderController extends AbstractController
         }
         $this->entityManager->flush();
 
-        return $this->json(['message' => 'Order created successfully', 'orderId' => $order->getId()], Response::HTTP_CREATED);
+        return $this->json(['message' => 'Заказ создан успешно', 'orderId' => $order->getId()], Response::HTTP_CREATED);
     }
 
     #[OA\Get(

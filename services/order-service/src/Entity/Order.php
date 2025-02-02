@@ -37,8 +37,10 @@ class Order
     #[ORM\Column(type: Types::TEXT)]
     #[Assert\NotBlank(message: "Адрес доставки обязателен")]
     #[Assert\Length(
-        min: 5, minMessage: "Адрес должен содержать не менее 5 символов",
-        max: 255, maxMessage: "Адрес не может превышать 255 символов"
+        min: 5,
+        max: 255,
+        minMessage: "Адрес должен содержать не менее 5 символов",
+        maxMessage: "Адрес не может превышать 255 символов"
     )]
     #[Groups(["order:read"])]
     #[OA\Property(

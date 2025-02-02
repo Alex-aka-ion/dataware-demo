@@ -254,6 +254,6 @@ final class ProductController extends AbstractController
         $this->entityManager->remove($product);
         $this->entityManager->flush();
 
-        return $this->json(['message' => 'Product deleted'], Response::HTTP_NO_CONTENT);
+        return $this->json(['message' => 'Продукт удалён'], Response::HTTP_NO_CONTENT);
     }
 }
