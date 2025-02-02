@@ -10,7 +10,7 @@
 >
     <php>
         <env name="APP_ENV" value="test" force="true" />
-        <env name="DATABASE_URL" value="postgresql://symfony:symfony@postgres:5432/test_product_db"/>
+        <env name="DATABASE_URL" value="postgresql://symfony:symfony@postgres:5432/product_db"/>
         <ini name="display_errors" value="1" />
         <ini name="error_reporting" value="-1" />
     </php>

@@ -41,7 +41,7 @@ services:
       - ./services/product-service:/var/www  # Монтируем код Symfony
 #      - ./services/product-service/public:/var/www/public  # Монтируем папку public отдельно (для Nginx)
 #      - ./services/product-service/var:/var/www/var  # Монтируем кеш и логи
-      - ./docker/php-fpm/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ./docker/php-fpm/product-service-xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
     environment:
       REDIS_HOST: redis
     ports:
@@ -79,7 +79,7 @@ services:
       - ./services/order-service:/var/www  # Монтируем код Symfony
 #      - ./services/order-service/public:/var/www/public  # Монтируем папку public отдельно (для Nginx)
 #      - ./services/order-service/var:/var/www/var  # Монтируем кеш и логи
-      - ./docker/php-fpm/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ./docker/php-fpm/order-service-xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
     environment:
       REDIS_HOST: redis
     ports:
@@ -119,6 +119,7 @@ services:
       - ./services/api-gateway:/var/www  # Монтируем код Symfony
 #      - ./services/api-gateway/public:/var/www/public  # Монтируем папку public отдельно (для Nginx)
 #      - ./services/api-gateway/var:/var/www/var  # Монтируем кеш и логи
+      - ./docker/php-fpm/api-gateway-xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
     ports:
       - "9005:9003"  # Для API Gateway
     networks:

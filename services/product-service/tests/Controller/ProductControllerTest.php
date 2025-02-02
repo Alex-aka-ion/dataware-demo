@@ -2,8 +2,10 @@
 
 namespace App\Tests\Controller;
 
+use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Uid\Uuid;
 
@@ -15,6 +17,17 @@ class ProductControllerTest extends WebTestCase
     protected function setUp(): void
     {
         $this->client = static::createClient();
+
+        // Подключаем мок в контейнер
+        /** @var ContainerInterface $container */
+        $container = self::getContainer();
+
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = $container->get(EntityManagerInterface::class);
+
+        // Очистка базы данных перед каждым тестом
+        $purger = new ORMPurger($entityManager);
+        $purger->purge();
     }
 
     public function testCreateProduct(): void

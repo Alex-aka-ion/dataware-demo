@@ -6,7 +6,6 @@ use App\Entity\Order;
 use App\Entity\OrderItem;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;
-use Symfony\Component\Validator\ConstraintViolation;
 
 class OrderItemTest extends TestCase
 {
