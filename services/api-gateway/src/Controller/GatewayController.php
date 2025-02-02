@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -57,6 +58,38 @@ readonly class GatewayController
             );
         } catch (\Exception $e) {
             return new JsonResponse(['error' => 'Service unavailable'], 502);
+        }
+    }
+
+    #[Route('/doc-product-service', name: 'proxy_doc_product', methods: ['GET'])]
+    public function proxyProductDoc(): Response
+    {
+        try {
+            $response = $this->httpClient->request('GET', 'http://product-service/api/doc');
+
+            return new Response(
+                $response->getContent(),
+                $response->getStatusCode(),
+                $response->getHeaders(false)
+            );
+        } catch (\Exception $e) {
+            return new Response('Service unavailable', 502);
+        }
+    }
+
+    #[Route('/doc-order-service', name: 'proxy_doc_order', methods: ['GET'])]
+    public function proxyOrderDoc(): Response
+    {
+        try {
+            $response = $this->httpClient->request('GET', 'http://order-service/api/doc');
+
+            return new Response(
+                $response->getContent(),
+                $response->getStatusCode(),
+                $response->getHeaders(false)
+            );
+        } catch (\Exception $e) {
+            return new Response('Service unavailable', 502);
         }
     }
 }

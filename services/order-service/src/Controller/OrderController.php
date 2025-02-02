@@ -217,7 +217,7 @@ class OrderController extends AbstractController
             new OA\Response(response: 404, description: 'Заказ не найден')
         ]
     )]
-    #[Route('/{id}', requirements: ['id' => '[0-9a-fA-F-]{36}'], methods: ['GET'])]
+    #[Route('/{id}', methods: ['GET'])]
     public function getOrder(string $id): JsonResponse
     {
         $order = $this->orderRepository->find($id);
@@ -258,7 +258,7 @@ class OrderController extends AbstractController
             new OA\Response(response: 400, description: 'Ошибка валидации')
         ]
     )]
-    #[Route('/{id}', requirements: ['id' => '[0-9a-fA-F-]{36}'], methods: ['PUT'])]
+    #[Route('/{id}', methods: ['PUT'])]
     public function updateOrder(string $id, Request $request, ValidatorInterface $validator): JsonResponse
     {
         $order = $this->orderRepository->find($id);
@@ -303,7 +303,7 @@ class OrderController extends AbstractController
             new OA\Response(response: 404, description: 'Заказ не найден')
         ]
     )]
-    #[Route('/{id}', requirements: ['id' => '[0-9a-fA-F-]{36}'], methods: ['DELETE'])]
+    #[Route('/{id}', methods: ['DELETE'])]
     public function deleteOrder(string $id): JsonResponse
     {
         $order = $this->orderRepository->find($id);
