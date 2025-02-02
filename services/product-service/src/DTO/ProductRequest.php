@@ -55,6 +55,7 @@ class ProductRequest
     #[Assert\Type(type: "array", message: "Категории должны быть массивом.")]
     #[Assert\Count(min: 1, minMessage: "Необходимо указать хотя бы одну категорию.")]
     #[Assert\All([
+        new Assert\Type(type: "string", message: "Каждая категория должна быть строкой."),
         new Assert\NotBlank(message: "Категория не может быть пустой"),
         new Assert\Length(max: 100, maxMessage: "Категория не может быть длиннее 100 символов")
     ])]
