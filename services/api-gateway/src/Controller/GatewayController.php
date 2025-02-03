@@ -35,7 +35,7 @@ readonly class GatewayController
     private function isRouteAllowed(string $service, string $path, string $method): bool
     {
         foreach ($this->allowedRoutes[$service] as $route => $methods) {
-            $pattern = preg_replace('/\{[^}]+\}/', '[^/]+', $route);
+            $pattern = preg_replace('/\{[^}]+}/', '[^/]+', $route);
             if (preg_match("#^{$pattern}$#", $path) && in_array($method, $methods)) {
                 return true;
             }
