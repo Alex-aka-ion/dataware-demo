@@ -7,6 +7,7 @@ use App\DTO\OrderItemRequest;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;
 
+// Unit-тесты DTO
 class OrderRequestTest extends TestCase
 {
     private $validator;

@@ -1,0 +1,88 @@
+### Создать продукт
+POST http://localhost:52000/api/products
+Content-Type: application/json
+
+{
+  "name": "ASUS Notebook",
+  "description": "Intel chip",
+  "price": 1499.99,
+  "categories": ["Laptops", "ASUS"]
+}
+
+### Получить список продуктов
+GET http://localhost:52000/api/products
+
+### Создать продукт с некорректными параметрами
+POST http://localhost:52000/api/products
+Content-Type: application/json
+
+{
+  "name": "",
+  "description": "Короткое описание",
+  "price": -50,
+  "categories": [
+    "",
+    "Слишком длинная категория которая не пройдет валидацию Слишком длинная категория которая не пройдет валидацию"
+  ]
+}
+
+### Тестовый XSS-запрос для создания продукта
+POST http://localhost:52000/api/products
+Content-Type: application/json
+
+{
+  "name": "<script>alert(\"XSS\")</script>",
+  "description": "<img src=x onerror=alert(\"XSS\")>",
+  "price": 100,
+  "categories": ["Test"]
+}
+
+### Создать заказ
+POST http://localhost:53000/api/orders
+Content-Type: application/json
+
+{
+  "deliveryAddress": "123 Main Street",
+  "products": [
+    { "productId": "0194bd9a-d8b5-7de7-873d-db4907a13836", "quantity": 1 },
+    { "productId": "0194bd9a-f06c-7dd1-9324-2559afdc248f", "quantity": 2 }
+  ]
+}
+
+### Получить список заказов
+GET http://localhost:53000/api/orders
+
+### Создать заказ с некорректными данными
+POST http://localhost:53000/api/orders
+Content-Type: application/json
+
+{
+  "deliveryAddress": "",
+  "products": [
+    { "productId": "", "quantity": -2 }
+  ]
+}
+
+### Создать заказ с почти корректными данными
+POST http://localhost:53000/api/orders
+Content-Type: application/json
+
+{
+  "deliveryAddress": "123 Main Street",
+  "products": [
+    { "productId": "0194bd9a-d8b5-7de7-873d-db4907a1383e", "quantity": 1 },
+    { "productId": "0194bd9a-f06c-7dd1-9324-2559afdc248e", "quantity": 2 }
+  ]
+}
+
+### Создать заказ c неправильным форматом
+POST http://localhost:53000/api/orders
+Content-Type: application/json
+
+{}
+
+### Получить список заказов
+GET http://localhost:53000/api/orders
+
+### Некорректный запрос для поиска заказов по товару
+GET http://localhost:53000/api/orders/search?productId=invalid-uuid-123

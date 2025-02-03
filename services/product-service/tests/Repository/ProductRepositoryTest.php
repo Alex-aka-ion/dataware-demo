@@ -7,7 +7,7 @@ use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 
-// Интеграционные тесты репозитория
+// Интеграционные тесты Repository
 class ProductRepositoryTest extends KernelTestCase
 {
     private ?EntityManagerInterface $entityManager = null;

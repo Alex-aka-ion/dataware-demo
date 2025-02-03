@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;
 use Symfony\Component\Validator\ConstraintViolation;
 
+// Unit-тесты сущности Order
 class OrderTest extends TestCase
 {
     private $validator;

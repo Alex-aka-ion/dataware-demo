@@ -6,6 +6,7 @@ use App\DTO\UpdateOrderRequest;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;
 
+// Unit-тесты DTO
 class UpdateOrderRequestTest extends TestCase
 {
     private $validator;

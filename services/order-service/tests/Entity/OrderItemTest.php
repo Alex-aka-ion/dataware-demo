@@ -7,6 +7,7 @@ use App\Entity\OrderItem;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;
 
+// Unit-тесты сущности OrderItem
 class OrderItemTest extends TestCase
 {
     private $validator;

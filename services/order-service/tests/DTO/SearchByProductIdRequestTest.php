@@ -6,6 +6,7 @@ use App\DTO\SearchByProductIdRequest;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\Validation;
 
+// Unit-тесты DTO
 class SearchByProductIdRequestTest extends TestCase
 {
     private $validator;

@@ -9,45 +9,36 @@ use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Contracts\HttpClient\ResponseInterface;
 
+// Функциональные тесты API
 class OrderControllerTest extends WebTestCase
 {
     private $client;
     private $httpClientMock;
-    private $mockResponse;
 
     protected function setUp(): void
     {
         $this->client = static::createClient();
 
-        // Подключаем мок в контейнер
-        /** @var ContainerInterface $container */
-        $container = self::getContainer();
-
-        /** @var EntityManagerInterface $entityManager */
-        $entityManager = $container->get(EntityManagerInterface::class);
+        // Отключение перезагрузки клиента после каждого запроса
+        $this->client->disableReboot();
 
         // Очистка базы данных перед каждым тестом
-        $purger = new ORMPurger($entityManager);
+        $purger = new ORMPurger(self::getContainer()->get(EntityManagerInterface::class));
         $purger->purge();
     }
 
     public function testCreateOrder(): void
     {
-        $this->client->disableReboot();
         // Определение последовательности ответов от product-service
         $responses = [
             new MockResponse(json_encode(['price' => 2999.99]), ['http_code' => 200]),
         ];
 
-        // Создание MockHttpClient с последовательными ответами
-        $mockHttpClient = new MockHttpClient($responses);
+        // Создание клиента установка MockHttpClient в контейнер Symfony
+        static::getContainer()->set(HttpClientInterface::class, new MockHttpClient($responses));
 
-        // Установка MockHttpClient в контейнер Symfony
-        static::getContainer()->set(HttpClientInterface::class, $mockHttpClient);
-
+        // Создаем заказ
         $orderData = [
             'deliveryAddress' => 'ул. Пушкина, д. 10',
             'products' => [
@@ -64,20 +55,15 @@ class OrderControllerTest extends WebTestCase
 
     public function testGetOrders(): void
     {
-        $this->client->disableReboot();
-        // Определение последовательности ответов от product-service
         $responses = [
             new MockResponse(json_encode(['price' => 2999.99]), ['http_code' => 200]),
             new MockResponse(json_encode(['price' => 1999.99]), ['http_code' => 200]),
         ];
 
-        // Создание MockHttpClient с последовательными ответами
-        $mockHttpClient = new MockHttpClient($responses);
+        // Создание клиента установка MockHttpClient в контейнер Symfony
+        static::getContainer()->set(HttpClientInterface::class, new MockHttpClient($responses));
 
-        // Установка MockHttpClient в контейнер Symfony
-        static::getContainer()->set(HttpClientInterface::class, $mockHttpClient);
-
-        // Данные для первого заказа
+        // Создание первого заказа
         $orderData1 = [
             'deliveryAddress' => 'ул. Чехова, д. 7',
             'products' => [
@@ -88,7 +74,6 @@ class OrderControllerTest extends WebTestCase
             ]
         ];
 
-        // Создание первого заказа
         $this->client->request('POST', '/api/orders', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($orderData1));
         $response1 = json_decode($this->client->getResponse()->getContent(), true);
         $statusCode1 = $this->client->getResponse()->getStatusCode();
@@ -96,9 +81,9 @@ class OrderControllerTest extends WebTestCase
         echo "Response 1: " . json_encode($response1, JSON_PRETTY_PRINT) . "\n";
         echo "Status Code 1: {$statusCode1}\n";
 
-       // $this->assertResponseStatusCodeSame(Response::HTTP_CREATED, 'Первый заказ должен быть создан.');
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED, 'Первый заказ должен быть создан.');
 
-        // Данные для второго заказа
+        // Создание второго заказа
         $orderData2 = [
             'deliveryAddress' => 'ул. Толстого, д. 12',
             'products' => [
@@ -109,7 +94,6 @@ class OrderControllerTest extends WebTestCase
             ]
         ];
 
-        // Создание второго заказа
         $this->client->request('POST', '/api/orders', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($orderData2));
         $response2 = json_decode($this->client->getResponse()->getContent(), true);
         $statusCode2 = $this->client->getResponse()->getStatusCode();
@@ -132,8 +116,6 @@ class OrderControllerTest extends WebTestCase
 
     public function testSearchByProductId(): void
     {
-        $this->client->disableReboot();
-
         // Определение последовательности ответов от product-service
         $responses = [
             new MockResponse(json_encode(['price' => 2999.99]), ['http_code' => 200]),
@@ -142,11 +124,8 @@ class OrderControllerTest extends WebTestCase
             new MockResponse(json_encode(['price' => 4999.99]), ['http_code' => 200]),
         ];
 
-        // Создание MockHttpClient с последовательными ответами
-        $mockHttpClient = new MockHttpClient($responses);
-
-        // Установка MockHttpClient в контейнер Symfony
-        static::getContainer()->set(HttpClientInterface::class, $mockHttpClient);
+        // Создание клиента установка MockHttpClient в контейнер Symfony
+        static::getContainer()->set(HttpClientInterface::class, new MockHttpClient($responses));
 
         $productId = '550e8400-e29b-41d4-a716-446655440011';
 
@@ -186,24 +165,18 @@ class OrderControllerTest extends WebTestCase
         $this->assertResponseFormatSame('json');
 
         $orders = json_decode($this->client->getResponse()->getContent(), true);
-        //var_dump($orders);
         $this->assertCount(2, $orders, 'Ожидается два заказа с указанным productId.');
     }
 
     public function testUpdateOrder(): void
     {
-        $this->client->disableReboot();
-        // Сначала создаем заказ
         // Определение последовательности ответов от product-service
         $responses = [
             new MockResponse(json_encode(['price' => 2999.99]), ['http_code' => 200]),
         ];
 
-        // Создание MockHttpClient с последовательными ответами
-        $mockHttpClient = new MockHttpClient($responses);
-
-        // Установка MockHttpClient в контейнер Symfony
-        static::getContainer()->set(HttpClientInterface::class, $mockHttpClient);
+        // Создание клиента установка MockHttpClient в контейнер Symfony
+        static::getContainer()->set(HttpClientInterface::class, new MockHttpClient($responses));
 
         $orderData = [
             'deliveryAddress' => 'ул. Пушкина, д. 10',
@@ -228,19 +201,15 @@ class OrderControllerTest extends WebTestCase
 
     public function testDeleteOrder(): void
     {
-        $this->client->disableReboot();
-        // Создание заказа перед удалением
         // Определение последовательности ответов от product-service
         $responses = [
             new MockResponse(json_encode(['price' => 2999.99]), ['http_code' => 200]),
         ];
 
-        // Создание MockHttpClient с последовательными ответами
-        $mockHttpClient = new MockHttpClient($responses);
+        // Создание клиента установка MockHttpClient в контейнер Symfony
+        static::getContainer()->set(HttpClientInterface::class, new MockHttpClient($responses));
 
-        // Установка MockHttpClient в контейнер Symfony
-        static::getContainer()->set(HttpClientInterface::class, $mockHttpClient);
-
+        // Создание заказа
         $orderData = [
             'deliveryAddress' => 'ул. Чехова, д. 7',
             'products' => [
@@ -259,8 +228,8 @@ class OrderControllerTest extends WebTestCase
         $this->client->request('DELETE', "/api/orders/{$orderId}");
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
 
-        // Вторая попытка удаления удаленного заказа
-        $this->client->request('DELETE', "/api/orders/{$orderId}");
+        // Проверка удаления
+        $this->client->request('GET', "/api/orders/{$orderId}");
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
     }
 

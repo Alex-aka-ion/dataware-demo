@@ -8,6 +8,7 @@ use App\Repository\OrderRepository;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 
+// Интеграционные тесты Repository
 class OrderRepositoryTest extends KernelTestCase
 {
     private ?EntityManagerInterface $entityManager = null;

@@ -5,7 +5,6 @@ namespace App\Tests\Controller;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Uid\Uuid;
 
@@ -18,15 +17,11 @@ class ProductControllerTest extends WebTestCase
     {
         $this->client = static::createClient();
 
-        // Подключаем мок в контейнер
-        /** @var ContainerInterface $container */
-        $container = self::getContainer();
-
-        /** @var EntityManagerInterface $entityManager */
-        $entityManager = $container->get(EntityManagerInterface::class);
+        // Отключение перезагрузки клиента после каждого запроса
+        $this->client->disableReboot();
 
         // Очистка базы данных перед каждым тестом
-        $purger = new ORMPurger($entityManager);
+        $purger = new ORMPurger(self::getContainer()->get(EntityManagerInterface::class));
         $purger->purge();
     }
 
@@ -41,6 +36,7 @@ class ProductControllerTest extends WebTestCase
 
         $this->client->request('POST', '/api/products', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($productData));
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+
         $response = json_decode($this->client->getResponse()->getContent(), true);
         $this->assertArrayHasKey('id', $response);
     }
@@ -63,7 +59,7 @@ class ProductControllerTest extends WebTestCase
 
     public function testReadProduct(): void
     {
-        // Создание продукта для чтения
+        // Создание продукта
         $productData = [
             'name' => 'Product Read Test',
             'price' => 999.99,
@@ -83,7 +79,7 @@ class ProductControllerTest extends WebTestCase
 
     public function testUpdateProduct(): void
     {
-        // Создание продукта для обновления
+        // Создание продукта
         $productData = [
             'name' => 'Product Update Test',
             'price' => 1299.99,
@@ -113,6 +109,7 @@ class ProductControllerTest extends WebTestCase
 
     public function testInvalidUpdateProduct(): void
     {
+        // Создание продукта
         $productData = [
             'name' => 'Valid Product',
             'price' => 1299.99,
@@ -124,6 +121,7 @@ class ProductControllerTest extends WebTestCase
         $response = json_decode($this->client->getResponse()->getContent(), true);
         $productId = $response['id'];
 
+        // Обновление продукта
         $invalidUpdateData = [
             'name' => '', // Пустое имя продукта (ошибка валидации)
             'price' => -500, // Отрицательная цена (ошибка валидации)
@@ -140,7 +138,7 @@ class ProductControllerTest extends WebTestCase
 
     public function testDeleteProduct(): void
     {
-        // Создание продукта для удаления
+        // Создание продукта
         $productData = [
             'name' => 'Product Delete Test',
             'price' => 1099.99,
@@ -195,9 +193,11 @@ class ProductControllerTest extends WebTestCase
 
     public function testShowProductNotFound(): void
     {
+        // Проверка с неправильным форматом
         $this->client->request('GET', '/api/products/invalid-uuid');
         $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
 
+        // Проверка с форматом uuid
         $validUuid = Uuid::v4()->toRfc4122();
         $this->client->request('GET', "/api/products/{$validUuid}");
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
@@ -209,11 +209,12 @@ class ProductControllerTest extends WebTestCase
             'name' => 'Updated Product'
         ];
 
+        // Проверка с неправильным форматом
         $this->client->request('PUT', '/api/products/invalid-uuid', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($data));
         $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
 
-        $validUuid = Uuid::v4()->toRfc4122();
-
+        // Проверка с форматом uuid
+        $validUuid = '550e8400-e29b-41d4-a716-446655440031';
         $this->client->request('PUT', "/api/products/{$validUuid}", [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($data));
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
     }
@@ -223,7 +224,7 @@ class ProductControllerTest extends WebTestCase
         $this->client->request('DELETE', '/api/products/invalid-uuid');
         $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
 
-        $validUuid = Uuid::v4()->toRfc4122();
+        $validUuid = '550e8400-e29b-41d4-a716-446655440031';
         $this->client->request('DELETE', "/api/products/{$validUuid}");
         $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
     }
