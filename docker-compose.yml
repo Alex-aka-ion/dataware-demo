@@ -28,8 +28,8 @@ services:
   # Product Service (Symfony + PHP-FPM)
   php-fpm-product-service:
     build:
-      context: .
-      dockerfile: ./services/product-service/Dockerfile
+      context: ./services/product-service
+      dockerfile: Dockerfile
     container_name: php-fpm-product-service
     restart: always
     depends_on:
@@ -63,8 +63,8 @@ services:
   # Order Service (Symfony + PHP-FPM)
   php-fpm-order-service:
     build:
-      context: .
-      dockerfile: ./services/order-service/Dockerfile
+      context: ./services/order-service
+      dockerfile: Dockerfile
     container_name: php-fpm-order-service
     restart: always
     depends_on:
@@ -98,8 +98,8 @@ services:
   # API Gateway (Symfony + PHP-FPM)
   php-fpm-api-gateway:
     build:
-      context: .
-      dockerfile: ./services/api-gateway/Dockerfile
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
     container_name: php-fpm-api-gateway
     restart: always
     depends_on:
