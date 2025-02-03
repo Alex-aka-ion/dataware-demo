@@ -5,37 +5,37 @@ monolog:
 when@dev:
     monolog:
         handlers:
-            main:
-                type: stream
-                path: "php://stdout"  # Логирование в Docker logs
-                level: debug
-                channels: ["!event"]
-            error_log:
-                type: stream
-                path: "php://stderr"  # Ошибки теперь пишутся в stderr
-                level: error
-                channels: ["!event", "!doctrine"]
-            console:
-                type: console
-                process_psr_3_messages: false
-                channels: ["!event", "!doctrine", "!console"]
 #            main:
 #                type: stream
-#                path: "%kernel.logs_dir%/%kernel.environment%.log"
+#                path: "php://stdout"  # Логирование в Docker logs
 #                level: debug
 #                channels: ["!event"]
-#            # uncomment to get logging in your browser
-#            # you may have to allow bigger header sizes in your Web server configuration
-#            #firephp:
-#            #    type: firephp
-#            #    level: info
-#            #chromephp:
-#            #    type: chromephp
-#            #    level: info
+#            error_log:
+#                type: stream
+#                path: "php://stderr"  # Ошибки теперь пишутся в stderr
+#                level: error
+#                channels: ["!event", "!doctrine"]
 #            console:
 #                type: console
 #                process_psr_3_messages: false
 #                channels: ["!event", "!doctrine", "!console"]
+            main:
+                type: stream
+                path: "%kernel.logs_dir%/%kernel.environment%.log"
+                level: debug
+                channels: ["!event"]
+            # uncomment to get logging in your browser
+            # you may have to allow bigger header sizes in your Web server configuration
+            #firephp:
+            #    type: firephp
+            #    level: info
+            #chromephp:
+            #    type: chromephp
+            #    level: info
+            console:
+                type: console
+                process_psr_3_messages: false
+                channels: ["!event", "!doctrine", "!console"]
 
 when@test:
     monolog:

@@ -13,51 +13,131 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 #[Route('/api')]
 readonly class GatewayController
 {
+    private array $allowedRoutes;
     public function __construct(
         private HttpClientInterface $httpClient
     )
     {
+        $this->allowedRoutes = [
+            'product-service' => [
+                '/api/products' => ['GET', 'POST'],         // Разрешаем получить список продуктов и создать новый
+                '/api/products/{id}' => ['GET', 'PUT', 'DELETE'], // Разрешаем получить, обновить и удалить продукт
+                '/api/products/search' => ['GET'],                 // Разрешаем только поиск продуктов
+            ],
+            'order-service' => [
+                '/api/orders' => ['GET', 'POST'],         // Разрешаем получить список заказов и создать новый
+                '/api/orders/{id}' => ['GET', 'PUT', 'DELETE'], // Разрешаем получить, обновить и удалить заказ
+                '/api/orders/search' => ['GET'],                 // Разрешаем поиск заказов по ID продукта
+            ],
+        ];
+    }
+
+//    #[Route('/products/{id?}', name: 'proxy_product', methods: ['GET', 'POST', 'PUT', 'DELETE'])]
+//    public function proxyProductService(Request $request, ?string $id = null): JsonResponse
+//    {
+//        $url = 'http://product-service/api/products' . ($id ? "/$id" : '');
+//
+//        try {
+//            $response = $this->httpClient->request(
+//                $request->getMethod(),
+//                $url,
+//                ['json' => json_decode($request->getContent(), true)]
+//            );
+//
+//            return new JsonResponse(
+//                $response->toArray(),
+//                $response->getStatusCode()
+//            );
+//        } catch (\Exception $e) {
+//            return new JsonResponse(['error' => 'Service unavailable'], 502);
+//        }
+//    }
+
+//    #[Route('/orders/{id?}', name: 'proxy_order', methods: ['GET', 'POST', 'PUT', 'DELETE'])]
+//    public function proxyOrderService(Request $request, ?string $id = null): JsonResponse
+//    {
+//        $url = 'http://order-service/api/orders' . ($id ? "/$id" : '');
+//
+//        try {
+//            $response = $this->httpClient->request(
+//                $request->getMethod(),
+//                $url,
+//                ['json' => json_decode($request->getContent(), true)]
+//            );
+//
+//            return new JsonResponse(
+//                $response->toArray(),
+//                $response->getStatusCode()
+//            );
+//        } catch (\Exception $e) {
+//            return new JsonResponse(['error' => 'Service unavailable'], 502);
+//        }
+//    }
+
+    private function isRouteAllowed(string $service, string $path, string $method): bool
+    {
+        foreach ($this->allowedRoutes[$service] as $route => $methods) {
+            $pattern = preg_replace('/\{[^}]+\}/', '[^/]+', $route); // Преобразуем {id} в регулярное выражение
+            if (preg_match("#^{$pattern}$#", $path) && in_array($method, $methods)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     #[Route('/products/{id?}', name: 'proxy_product', methods: ['GET', 'POST', 'PUT', 'DELETE'])]
     public function proxyProductService(Request $request, ?string $id = null): JsonResponse
     {
-        $url = 'http://product-service/api/products' . ($id ? "/$id" : '');
+        $path = '/api/products' . ($id ? "/$id" : '');
+        $method = $request->getMethod();
+
+        if (!$this->isRouteAllowed('product-service', $path, $method)) {
+            return new JsonResponse(['error' => 'Forbidden'], Response::HTTP_FORBIDDEN);
+        }
+
+        $url = 'http://product-service' . $path;
 
         try {
             $response = $this->httpClient->request(
-                $request->getMethod(),
+                $method,
                 $url,
                 ['json' => json_decode($request->getContent(), true)]
             );
 
             return new JsonResponse(
-                $response->toArray(),
+                $response->toArray(false),
                 $response->getStatusCode()
             );
         } catch (\Exception $e) {
-            return new JsonResponse(['error' => 'Service unavailable'], 502);
+            return new JsonResponse(['error' => 'Service unavailable'], Response::HTTP_BAD_GATEWAY);
         }
     }
 
     #[Route('/orders/{id?}', name: 'proxy_order', methods: ['GET', 'POST', 'PUT', 'DELETE'])]
     public function proxyOrderService(Request $request, ?string $id = null): JsonResponse
     {
-        $url = 'http://order-service/api/orders' . ($id ? "/$id" : '');
+        $path = '/api/orders' . ($id ? "/$id" : '');
+        $method = $request->getMethod();
+
+        if (!$this->isRouteAllowed('order-service', $path, $method)) {
+            return new JsonResponse(['error' => 'Forbidden'], Response::HTTP_FORBIDDEN);
+        }
+
+        $url = 'http://order-service' . $path;
 
         try {
             $response = $this->httpClient->request(
-                $request->getMethod(),
+                $method,
                 $url,
                 ['json' => json_decode($request->getContent(), true)]
             );
 
             return new JsonResponse(
-                $response->toArray(),
+                $response->toArray(false),
                 $response->getStatusCode()
             );
         } catch (\Exception $e) {
-            return new JsonResponse(['error' => 'Service unavailable'], 502);
+            return new JsonResponse(['error' => 'Service unavailable'], Response::HTTP_BAD_GATEWAY);
         }
     }
 

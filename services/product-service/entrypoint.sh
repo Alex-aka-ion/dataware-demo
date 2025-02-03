@@ -14,5 +14,8 @@ echo "База данных доступна! Накатываю миграци�
 php bin/console doctrine:database:create --env=test
 php bin/console doctrine:schema:update --force --env=test
 
+echo "База данных доступна! Создаю фейковые товары..."
+php bin/console doctrine:fixtures:load --no-interaction --env=dev
+
 echo "Запускаю PHP-FPM..."
 exec php-fpm
