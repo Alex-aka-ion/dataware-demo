@@ -3,6 +3,7 @@
 namespace App\Tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpClient\Exception\ServerException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -135,11 +136,18 @@ class GatewayControllerTest extends WebTestCase
 
     public function testServiceUnavailable(): void
     {
-        $this->mockHttpClient([
-            new MockResponse('', ['http_code' => 502])
+        $mockResponse = new MockResponse('', [
+            'http_code' => 500
         ]);
 
-        $this->client->request('GET', '/api/products/1');
-        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_GATEWAY);
+        $mockHttpClient = new MockHttpClient(function () use ($mockResponse) {
+            throw new ServerException($mockResponse);
+        });
+
+        self::getContainer()->set(HttpClientInterface::class, $mockHttpClient);
+
+        $this->client->request('GET', '/api/products/uuid');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 }

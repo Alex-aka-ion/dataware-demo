@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # База данных PostgreSQL
   postgres:
@@ -30,18 +28,15 @@ services:
   # Product Service (Symfony + PHP-FPM)
   php-fpm-product-service:
     build:
-      context: ./services/product-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./services/product-service/Dockerfile
     container_name: php-fpm-product-service
     restart: always
     depends_on:
       - postgres
       - redis
     volumes:
-      - ./services/product-service:/var/www  # Монтируем код Symfony
-#      - ./services/product-service/public:/var/www/public  # Монтируем папку public отдельно (для Nginx)
-#      - ./services/product-service/var:/var/www/var  # Монтируем кеш и логи
-      - ./docker/php-fpm/product-service-xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ./services/product-service:/var/www
     environment:
       REDIS_HOST: redis
     ports:
@@ -68,18 +63,15 @@ services:
   # Order Service (Symfony + PHP-FPM)
   php-fpm-order-service:
     build:
-      context: ./services/order-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./services/order-service/Dockerfile
     container_name: php-fpm-order-service
     restart: always
     depends_on:
       - postgres
       - redis
     volumes:
-      - ./services/order-service:/var/www  # Монтируем код Symfony
-#      - ./services/order-service/public:/var/www/public  # Монтируем папку public отдельно (для Nginx)
-#      - ./services/order-service/var:/var/www/var  # Монтируем кеш и логи
-      - ./docker/php-fpm/order-service-xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ./services/order-service:/var/www
     environment:
       REDIS_HOST: redis
     ports:
@@ -106,8 +98,8 @@ services:
   # API Gateway (Symfony + PHP-FPM)
   php-fpm-api-gateway:
     build:
-      context: ./services/api-gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./services/api-gateway/Dockerfile
     container_name: php-fpm-api-gateway
     restart: always
     depends_on:
@@ -116,10 +108,7 @@ services:
       - nginx-product-service
       - nginx-order-service
     volumes:
-      - ./services/api-gateway:/var/www  # Монтируем код Symfony
-#      - ./services/api-gateway/public:/var/www/public  # Монтируем папку public отдельно (для Nginx)
-#      - ./services/api-gateway/var:/var/www/var  # Монтируем кеш и логи
-      - ./docker/php-fpm/api-gateway-xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ./services/api-gateway:/var/www
     ports:
       - "9005:9003"  # Для API Gateway
     networks:

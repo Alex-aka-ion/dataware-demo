@@ -2,7 +2,6 @@ FROM php:8.3-fpm
 
 # Установка зависимостей
 RUN apt-get update && apt-get install -y \
-    git \
     unzip \
     libpq-dev \
     libzip-dev \
@@ -10,6 +9,9 @@ RUN apt-get update && apt-get install -y \
 
 # Установка Xdebug
 RUN pecl install xdebug && docker-php-ext-enable xdebug
+
+# Копируем конфиг Xdebug в контейнер
+COPY ../../docker/php/conf.d/api-gateway-xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
 
 # Копируем проект внутрь контейнера
 WORKDIR /var/www
