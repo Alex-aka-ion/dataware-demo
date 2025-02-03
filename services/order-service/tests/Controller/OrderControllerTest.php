@@ -14,7 +14,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class OrderControllerTest extends WebTestCase
 {
     private $client;
-    private $httpClientMock;
 
     protected function setUp(): void
     {
@@ -237,6 +236,5 @@ class OrderControllerTest extends WebTestCase
     {
         parent::tearDown();
         $this->client = null;
-        $this->httpClientMock = null;
     }
 }
