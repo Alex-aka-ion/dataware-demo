@@ -26,6 +26,9 @@ Content-Type: application/json
   ]
 }
 
+### Запрос на удаление
+DELETE http://localhost:52000/api/products/0194cc5e-3687-7c00-97d7-a3bba414f036
+
 ### Тестовый XSS-запрос для создания продукта
 POST http://localhost:52000/api/products
 Content-Type: application/json

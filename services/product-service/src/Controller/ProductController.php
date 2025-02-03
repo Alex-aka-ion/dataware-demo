@@ -92,6 +92,7 @@ final class ProductController extends AbstractController
         ],
         responses: [
             new OA\Response(response: 200, description: 'Информация о продукте'),
+            new OA\Response(response: 400, description: 'Некорректный запрос'),
             new OA\Response(response: 404, description: 'Продукт не найден')
         ]
     )]
@@ -177,6 +178,7 @@ final class ProductController extends AbstractController
         ],
         responses: [
             new OA\Response(response: 200, description: 'Продукт обновлён'),
+            new OA\Response(response: 400, description: 'Некорректный запрос'),
             new OA\Response(response: 404, description: 'Продукт не найден')
         ]
     )]
@@ -248,6 +250,7 @@ final class ProductController extends AbstractController
         ],
         responses: [
             new OA\Response(response: 204, description: 'Продукт удалён'),
+            new OA\Response(response: 400, description: 'Некорректный запрос'),
             new OA\Response(response: 404, description: 'Продукт не найден')
         ]
     )]

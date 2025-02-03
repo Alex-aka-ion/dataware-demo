@@ -114,16 +114,19 @@ class OrderController extends AbstractController
             try {
                 $productResponse = $this->httpClient->request('GET', "http://product-service/api/products/{$productId}");
 
-                if ($productResponse->getStatusCode() !== 200) {
+                if ($productResponse->getStatusCode() === Response::HTTP_NOT_FOUND) {
                     $allErrors[] = $this->json(['error' => "Продукт с ID {$productId} не найден в product-service"], Response::HTTP_BAD_REQUEST);
                     continue;
+                }
+                if ($productResponse->getStatusCode() !== Response::HTTP_OK) {
+                    throw new \Exception('Product-service вернул неожиданный код: ' . $productResponse->getStatusCode());
                 }
 
                 $productInfo = json_decode($productResponse->getContent(), true);
                 $orderItem->setPrice((float) $productInfo['price']);
 
             } catch (\Exception $e) {
-                return $this->json(['error' => 'Product-service недоступен. Пожалуйста, попробуйте позже.'], Response::HTTP_SERVICE_UNAVAILABLE);
+                return $this->json(['error' => "Product-service недоступен. Пожалуйста, попробуйте позже. {$e->getMessage()}"], Response::HTTP_SERVICE_UNAVAILABLE);
             }
 
             $orderItem->setOrder($order);

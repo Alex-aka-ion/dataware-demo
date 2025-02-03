@@ -20,64 +20,22 @@ readonly class GatewayController
     {
         $this->allowedRoutes = [
             'product-service' => [
-                '/api/products' => ['GET', 'POST'],         // Разрешаем получить список продуктов и создать новый
+                '/api/products' => ['GET', 'POST'],               // Разрешаем получить список продуктов и создать новый
                 '/api/products/{id}' => ['GET', 'PUT', 'DELETE'], // Разрешаем получить, обновить и удалить продукт
-                '/api/products/search' => ['GET'],                 // Разрешаем только поиск продуктов
+                '/api/products/search' => ['GET'],                // Разрешаем только поиск продуктов
             ],
             'order-service' => [
-                '/api/orders' => ['GET', 'POST'],         // Разрешаем получить список заказов и создать новый
+                '/api/orders' => ['GET', 'POST'],               // Разрешаем получить список заказов и создать новый
                 '/api/orders/{id}' => ['GET', 'PUT', 'DELETE'], // Разрешаем получить, обновить и удалить заказ
-                '/api/orders/search' => ['GET'],                 // Разрешаем поиск заказов по ID продукта
+                '/api/orders/search' => ['GET'],                // Разрешаем поиск заказов по ID продукта
             ],
         ];
     }
 
-//    #[Route('/products/{id?}', name: 'proxy_product', methods: ['GET', 'POST', 'PUT', 'DELETE'])]
-//    public function proxyProductService(Request $request, ?string $id = null): JsonResponse
-//    {
-//        $url = 'http://product-service/api/products' . ($id ? "/$id" : '');
-//
-//        try {
-//            $response = $this->httpClient->request(
-//                $request->getMethod(),
-//                $url,
-//                ['json' => json_decode($request->getContent(), true)]
-//            );
-//
-//            return new JsonResponse(
-//                $response->toArray(),
-//                $response->getStatusCode()
-//            );
-//        } catch (\Exception $e) {
-//            return new JsonResponse(['error' => 'Service unavailable'], 502);
-//        }
-//    }
-
-//    #[Route('/orders/{id?}', name: 'proxy_order', methods: ['GET', 'POST', 'PUT', 'DELETE'])]
-//    public function proxyOrderService(Request $request, ?string $id = null): JsonResponse
-//    {
-//        $url = 'http://order-service/api/orders' . ($id ? "/$id" : '');
-//
-//        try {
-//            $response = $this->httpClient->request(
-//                $request->getMethod(),
-//                $url,
-//                ['json' => json_decode($request->getContent(), true)]
-//            );
-//
-//            return new JsonResponse(
-//                $response->toArray(),
-//                $response->getStatusCode()
-//            );
-//        } catch (\Exception $e) {
-//            return new JsonResponse(['error' => 'Service unavailable'], 502);
-//        }
-//    }
-
     private function isRouteAllowed(string $service, string $path, string $method): bool
     {
         foreach ($this->allowedRoutes[$service] as $route => $methods) {
-            $pattern = preg_replace('/\{[^}]+\}/', '[^/]+', $route); // Преобразуем {id} в регулярное выражение
+            $pattern = preg_replace('/\{[^}]+\}/', '[^/]+', $route);
             if (preg_match("#^{$pattern}$#", $path) && in_array($method, $methods)) {
                 return true;
             }
@@ -85,7 +43,7 @@ readonly class GatewayController
         return false;
     }
 
-    #[Route('/products/{id?}', name: 'proxy_product', methods: ['GET', 'POST', 'PUT', 'DELETE'])]
+    #[Route('/products/{id?}', name: 'proxy_product', methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])]
     public function proxyProductService(Request $request, ?string $id = null): JsonResponse
     {
         $path = '/api/products' . ($id ? "/$id" : '');
@@ -105,7 +63,7 @@ readonly class GatewayController
             );
 
             return new JsonResponse(
-                $response->toArray(false),
+                $method === 'DELETE' ? [] : $response->toArray(false),
                 $response->getStatusCode()
             );
         } catch (\Exception $e) {
@@ -113,7 +71,7 @@ readonly class GatewayController
         }
     }
 
-    #[Route('/orders/{id?}', name: 'proxy_order', methods: ['GET', 'POST', 'PUT', 'DELETE'])]
+    #[Route('/orders/{id?}', name: 'proxy_order', methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])]
     public function proxyOrderService(Request $request, ?string $id = null): JsonResponse
     {
         $path = '/api/orders' . ($id ? "/$id" : '');
@@ -133,7 +91,7 @@ readonly class GatewayController
             );
 
             return new JsonResponse(
-                $response->toArray(false),
+                $method === 'DELETE' ? [] : $response->toArray(false),
                 $response->getStatusCode()
             );
         } catch (\Exception $e) {
