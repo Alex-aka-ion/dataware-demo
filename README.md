@@ -36,8 +36,8 @@
 ### Клонирование репозитория
 
 ```bash
-git clone https://github.com/your-repo/symfony-microservices.git
-cd symfony-microservices
+git clone https://github.com/Alex-aka-ion/dataware-demo
+cd dataware-demo
 ```
 
 ### Запуск контейнеров
