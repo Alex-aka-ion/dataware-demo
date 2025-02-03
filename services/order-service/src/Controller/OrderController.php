@@ -10,24 +10,46 @@ use App\Entity\Order;
 use App\Entity\OrderItem;
 use App\Repository\OrderRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use OpenApi\Attributes as OA;
 
+/**
+ * @Route("/api/orders", name="order_")
+ * Контроллер для управления заказами.
+ *
+ * Предоставляет функциональность для создания, получения, обновления и удаления заказов.
+ */
 #[Route('/api/orders', name: 'order_')]
 class OrderController extends AbstractController
 {
+    /**
+     * @param HttpClientInterface $httpClient HTTP-клиент для взаимодействия с внешними сервисами.
+     * @param OrderRepository $orderRepository Репозиторий для работы с заказами.
+     */
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly HttpClientInterface $httpClient,
-        private readonly OrderRepository $orderRepository
+        private readonly OrderRepository $orderRepository,
+        private readonly LoggerInterface $logger
     ) {}
 
+    /**
+     * Получить список всех заказов.
+     *
+     * @return JsonResponse Список заказов в формате JSON.
+     */
     #[OA\Get(
         path: '/api/orders',
         summary: 'Получить список всех заказов',
@@ -50,6 +72,13 @@ class OrderController extends AbstractController
         return $this->json($orders, context: ['groups' => 'order:read']);
     }
 
+    /**
+     * Создать новый заказ.
+     *
+     * @param Request $request HTTP-запрос с данными заказа.
+     * @param ValidatorInterface $validator Валидатор для проверки данных.
+     * @return JsonResponse Результат создания заказа.
+     */
     #[OA\Post(
         path: '/api/orders',
         summary: 'Создать новый заказ',
@@ -112,7 +141,9 @@ class OrderController extends AbstractController
 
             // Проверяем наличие и цену товар через product-service
             try {
-                $productResponse = $this->httpClient->request('GET', "http://product-service/api/products/{$productId}");
+                $url = "http://product-service/api/products/{$productId}";
+
+                $productResponse = $this->httpClient->request('GET', $url);
 
                 if ($productResponse->getStatusCode() === Response::HTTP_NOT_FOUND) {
                     $allErrors[] = $this->json(['error' => "Продукт с ID {$productId} не найден в product-service"], Response::HTTP_BAD_REQUEST);
@@ -124,11 +155,25 @@ class OrderController extends AbstractController
 
                 $productInfo = json_decode($productResponse->getContent(), true);
                 $orderItem->setPrice((float) $productInfo['price']);
-
+            } catch (ClientExceptionInterface $e) {
+                $this->logger->error('Client error occurred', ['message' => $e->getMessage(), 'url' => $url]);
+                return new JsonResponse(['error' => 'Product-service недоступен. Client error'], Response::HTTP_BAD_REQUEST);
+            } catch (ServerExceptionInterface $e) {
+                $this->logger->error('Server error occurred', ['message' => $e->getMessage(), 'url' => $url]);
+                return new JsonResponse(['error' => 'Product-service недоступен. Server error'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            } catch (RedirectionExceptionInterface $e) {
+                $this->logger->error('Redirection error occurred', ['message' => $e->getMessage(), 'url' => $url]);
+                return new JsonResponse(['error' => 'Product-service недоступен. Redirection error'], Response::HTTP_BAD_GATEWAY);
+            } catch (TransportExceptionInterface $e) {
+                $this->logger->error('Transport error occurred', ['message' => $e->getMessage(), 'url' => $url]);
+                return new JsonResponse(['error' => 'Product-service недоступен. Transport error'], Response::HTTP_SERVICE_UNAVAILABLE);
+            } catch (DecodingExceptionInterface $e) {
+                $this->logger->error('Decoding error occurred', ['message' => $e->getMessage(), 'url' => $url]);
+                return new JsonResponse(['error' => 'Product-service недоступен. Decoding error'], Response::HTTP_BAD_REQUEST);
             } catch (\Exception $e) {
-                return $this->json(['error' => "Product-service недоступен. Пожалуйста, попробуйте позже. {$e->getMessage()}"], Response::HTTP_SERVICE_UNAVAILABLE);
+                $this->logger->error('Unexpected error occurred', ['message' => $e->getMessage(), 'url' => $url]);
+                return new JsonResponse(['error' => 'Product-service недоступен. Unexpected error'], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
-
             $orderItem->setOrder($order);
             $orderItems[] = $orderItem;
 
@@ -158,6 +203,13 @@ class OrderController extends AbstractController
         return $this->json(['message' => 'Заказ создан успешно', 'orderId' => $order->getId()], Response::HTTP_CREATED);
     }
 
+    /**
+     * Найти заказы по ID продукта.
+     *
+     * @param Request $request HTTP-запрос с параметром productId.
+     * @param ValidatorInterface $validator Валидатор для проверки ID продукта.
+     * @return JsonResponse Список найденных заказов.
+     */
     #[OA\Get(
         path: '/api/orders/search',
         summary: 'Найти заказы по ID товара',
@@ -200,6 +252,12 @@ class OrderController extends AbstractController
         return $this->json($orders, context: ['groups' => 'order:read']);
     }
 
+    /**
+     * Получить заказ по его ID.
+     *
+     * @param string $id Идентификатор заказа.
+     * @return JsonResponse Информация о заказе или ошибка, если не найден.
+     */
     #[OA\Get(
         path: '/api/orders/{id}',
         summary: 'Получить заказ по ID',
@@ -232,6 +290,14 @@ class OrderController extends AbstractController
         return $this->json($order, context: ['groups' => 'order:read']);
     }
 
+    /**
+     * Обновить адрес доставки для существующего заказа.
+     *
+     * @param string $id Идентификатор заказа.
+     * @param Request $request HTTP-запрос с новыми данными.
+     * @param ValidatorInterface $validator Валидатор для проверки данных.
+     * @return JsonResponse Результат обновления заказа.
+     */
     #[OA\Put(
         path: '/api/orders/{id}',
         summary: 'Обновить адрес доставки',
@@ -290,6 +356,12 @@ class OrderController extends AbstractController
         return $this->json(['message' => 'Адрес доставки успешно обновлен']);
     }
 
+    /**
+     * Удалить заказ по его ID.
+     *
+     * @param string $id Идентификатор заказа.
+     * @return JsonResponse Результат удаления заказа.
+     */
     #[OA\Delete(
         path: '/api/orders/{id}',
         summary: 'Удалить заказ',

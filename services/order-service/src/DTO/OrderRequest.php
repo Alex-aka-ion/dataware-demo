@@ -4,6 +4,13 @@ namespace App\DTO;
 use Symfony\Component\Validator\Constraints as Assert;
 use OpenApi\Attributes as OA;
 
+/**
+ * Класс OrderRequest представляет данные для создания нового заказа.
+ *
+ * Этот DTO используется для передачи информации о заказе, включая адрес доставки и список товаров.
+ *
+ * @package App\DTO
+ */
 #[OA\Schema(
     title: "OrderRequest",
     description: "Данные для создания нового заказа",
@@ -11,6 +18,13 @@ use OpenApi\Attributes as OA;
 )]
 class OrderRequest
 {
+    /**
+     * Адрес доставки.
+     *
+     * Поле обязательно для заполнения и должно быть строкой.
+     *
+     * @var mixed
+     */
     #[Assert\NotBlank(message: "Адрес доставки обязателен.")]
     #[Assert\Type(type: "string", message: "Адрес доставки должен быть строкой.")]
     #[OA\Property(
@@ -22,6 +36,10 @@ class OrderRequest
     public mixed $deliveryAddress;
 
     /**
+     * Список товаров в заказе.
+     *
+     * Должен содержать хотя бы один товар. Каждый товар проверяется на валидность.
+     *
      * @var OrderItemRequest[]
      */
     #[Assert\NotBlank(message: "Необходимо указать товары в заказе.")]
@@ -35,6 +53,12 @@ class OrderRequest
     )]
     public mixed $products;
 
+    /**
+     * Конструктор класса OrderRequest.
+     *
+     * @param mixed $deliveryAddress Адрес доставки.
+     * @param mixed $products Список товаров в заказе.
+     */
     public function __construct(mixed $deliveryAddress, mixed $products)
     {
         $this->deliveryAddress = $deliveryAddress;

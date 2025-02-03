@@ -4,6 +4,12 @@ namespace App\DTO;
 use Symfony\Component\Validator\Constraints as Assert;
 use OpenApi\Attributes as OA;
 
+/**
+ * Класс ProductRequest предназначен для передачи данных при создании или обновлении продукта.
+ *
+ * Этот DTO (Data Transfer Object) используется для валидации данных, поступающих от клиента.
+ * Он содержит основную информацию о продукте, такую как название, описание, цена и категории.
+ */
 #[OA\Schema(
     title: "ProductRequest",
     description: "Запрос для создания или обновления продукта",
@@ -11,6 +17,11 @@ use OpenApi\Attributes as OA;
 )]
 class ProductRequest
 {
+    /**
+     * Название продукта.
+     *
+     * @var mixed Название продукта. Должно быть строкой длиной от 3 до 255 символов.
+     */
     #[Assert\Type(type: "string", message: "Название должно быть строкой.")]
     #[Assert\NotBlank(message: "Название продукта обязательно.")]
     #[Assert\Length(
@@ -28,6 +39,11 @@ class ProductRequest
     )]
     public mixed $name;
 
+    /**
+     * Описание продукта (необязательное поле).
+     *
+     * @var mixed Описание продукта. Должно быть строкой длиной до 1000 символов.
+     */
     #[Assert\Type(type: "string", message: "Описание должно быть строкой.")]
     #[Assert\Length(
         max: 1000,
@@ -41,6 +57,11 @@ class ProductRequest
     )]
     public mixed $description = null;
 
+    /**
+     * Цена продукта.
+     *
+     * @var mixed Цена продукта. Должна быть положительным числом, не превышающим 100 000 000.
+     */
     #[Assert\NotNull(message: "Цена продукта обязательна.")]
     #[Assert\Type(type: "numeric", message: "Цена должна быть числом.")]
     #[Assert\Positive(message: "Цена должна быть положительным числом.")]
@@ -54,6 +75,11 @@ class ProductRequest
     )]
     public mixed $price;
 
+    /**
+     * Список категорий продукта.
+     *
+     * @var mixed Массив категорий. Каждая категория должна быть строкой длиной до 100 символов.
+     */
     #[Assert\NotNull(message: "Категории обязательны.")]
     #[Assert\Type(type: "array", message: "Категории должны быть массивом.")]
     #[Assert\Count(min: 1, minMessage: "Необходимо указать хотя бы одну категорию.")]
@@ -70,6 +96,14 @@ class ProductRequest
     )]
     public mixed $categories;
 
+    /**
+     * Конструктор для инициализации ProductRequest.
+     *
+     * @param mixed $name Название продукта.
+     * @param mixed $price Цена продукта.
+     * @param mixed $categories Категории продукта.
+     * @param mixed|null $description (Необязательно) Описание продукта.
+     */
     public function __construct(mixed $name, mixed $price, mixed $categories, mixed $description = null)
     {
         $this->name = $name;
@@ -78,4 +112,3 @@ class ProductRequest
         $this->description = $description;
     }
 }
-

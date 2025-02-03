@@ -6,7 +6,6 @@ use App\DTO\ProductRequest;
 use App\Entity\Product;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,10 +16,20 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use OpenApi\Attributes as OA;
 
+/**
+ * Контроллер для управления продуктами.
+ *
+ * Этот контроллер предоставляет REST API для управления продуктами,
+ * включая создание, получение, обновление и удаление записей о продуктах.
+ */
 #[AsController]
 #[Route('/api/products', name: 'product_')]
 final class ProductController extends AbstractController
 {
+    /**
+     * @param EntityManagerInterface $entityManager Менеджер сущностей Doctrine для работы с БД.
+     * @param ProductRepository $productRepository Репозиторий для работы с сущностью Product.
+     */
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ProductRepository      $productRepository
@@ -28,6 +37,11 @@ final class ProductController extends AbstractController
     {
     }
 
+    /**
+     * Получение списка всех продуктов.
+     *
+     * @return JsonResponse Список продуктов в формате JSON.
+     */
     #[OA\Get(
         path: '/api/products',
         summary: 'Получить список всех продуктов',
@@ -46,7 +60,13 @@ final class ProductController extends AbstractController
         return $this->json($products);
     }
 
-
+    /**
+     * Поиск продуктов по имени.
+     *
+     * @param Request $request HTTP-запрос с параметром 'name'.
+     * @param ProductRepository $productRepository Репозиторий для поиска продуктов.
+     * @return JsonResponse Результаты поиска или сообщение об ошибке.
+     */
     #[OA\Get(
         path: '/api/products/search',
         summary: 'Поиск продуктов по имени',
@@ -78,7 +98,12 @@ final class ProductController extends AbstractController
         return $this->json($products, Response::HTTP_OK);
     }
 
-
+    /**
+     * Получение информации о продукте по его ID.
+     *
+     * @param string $id Идентификатор продукта (UUID).
+     * @return JsonResponse Информация о продукте или сообщение об ошибке.
+     */
     #[OA\Get(
         path: '/api/products/{id}',
         summary: 'Получить продукт по ID',
@@ -112,7 +137,13 @@ final class ProductController extends AbstractController
 
         return $this->json($product);
     }
-
+    /**
+     * Создание нового продукта.
+     *
+     * @param Request $request HTTP-запрос с данными продукта.
+     * @param ValidatorInterface $validator Валидатор для проверки данных.
+     * @return JsonResponse Созданный продукт или сообщение об ошибке.
+     */
     #[OA\Post(
         path: '/api/products',
         summary: 'Создать новый продукт',
@@ -161,6 +192,14 @@ final class ProductController extends AbstractController
         return $this->json($product, Response::HTTP_CREATED);
     }
 
+    /**
+     * Обновление данных продукта.
+     *
+     * @param string $id Идентификатор продукта (UUID).
+     * @param Request $request HTTP-запрос с обновленными данными.
+     * @param ValidatorInterface $validator Валидатор для проверки данных.
+     * @return JsonResponse Обновленный продукт или сообщение об ошибке.
+     */
     #[OA\Put(
         path: '/api/products/{id}',
         summary: 'Обновить продукт',
@@ -237,6 +276,12 @@ final class ProductController extends AbstractController
         return $this->json($product);
     }
 
+    /**
+     * Удаление продукта по его ID.
+     *
+     * @param string $id Идентификатор продукта (UUID).
+     * @return JsonResponse Сообщение об успешном удалении или ошибка.
+     */
     #[OA\Delete(
         path: '/api/products/{id}',
         summary: 'Удалить продукт',
