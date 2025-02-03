@@ -8,8 +8,6 @@ use OpenApi\Attributes as OA;
  * Класс UpdateOrderRequest представляет данные для обновления адреса доставки в существующем заказе.
  *
  * Этот DTO используется для передачи нового адреса доставки при обновлении информации о заказе.
- *
- * @package App\DTO
  */
 #[OA\Schema(
     title: "UpdateOrderRequest",

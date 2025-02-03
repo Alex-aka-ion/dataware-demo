@@ -9,8 +9,6 @@ use OpenApi\Attributes as OA;
  * Класс SearchByProductIdRequest представляет данные для поиска заказов по идентификатору продукта.
  *
  * Этот DTO используется для передачи параметра productId при выполнении запроса на поиск заказов, содержащих указанный продукт.
- *
- * @package App\DTO
  */
 #[OA\Schema(
     title: "SearchByProductIdRequest",

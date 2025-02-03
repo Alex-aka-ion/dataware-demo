@@ -9,8 +9,6 @@ use OpenApi\Attributes as OA;
  *
  * Этот DTO используется для передачи данных при создании или обновлении заказа,
  * включая идентификатор товара и количество.
- *
- * @package App\DTO
  */
 #[OA\Schema(
     title: "OrderItemRequest",

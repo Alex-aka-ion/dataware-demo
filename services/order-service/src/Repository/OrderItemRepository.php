@@ -11,8 +11,6 @@ use Doctrine\Persistence\ManagerRegistry;
  *
  * Этот класс предоставляет методы для выполнения запросов к базе данных,
  * связанных с сущностью OrderItem, используя возможности Doctrine ORM.
- *
- * @extends ServiceEntityRepository<OrderItem>
  */
 class OrderItemRepository extends ServiceEntityRepository
 {

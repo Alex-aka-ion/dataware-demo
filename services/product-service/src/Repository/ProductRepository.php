@@ -11,8 +11,6 @@ use Doctrine\Persistence\ManagerRegistry;
  *
  * Этот класс предоставляет методы для взаимодействия с таблицей продуктов в базе данных,
  * включая поиск по имени и другие операции, связанные с продуктами.
- *
- * @extends ServiceEntityRepository<Product>
  */
 class ProductRepository extends ServiceEntityRepository
 {

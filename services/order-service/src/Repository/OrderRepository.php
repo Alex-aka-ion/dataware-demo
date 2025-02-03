@@ -12,8 +12,6 @@ use Symfony\Component\Uid\Uuid;
  *
  * Этот класс предоставляет методы для выполнения запросов к базе данных,
  * связанных с сущностью Order, используя возможности Doctrine ORM.
- *
- * @extends ServiceEntityRepository<Order>
  */
 class OrderRepository extends ServiceEntityRepository
 {

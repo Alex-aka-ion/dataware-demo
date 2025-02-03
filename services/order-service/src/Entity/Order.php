@@ -16,8 +16,6 @@ use OpenApi\Attributes as OA;
  *
  * Этот класс управляет данными о заказе, включая адрес доставки,
  * список товаров и дату создания. Он также обеспечивает связь с сущностью OrderItem.
- *
- * @package App\Entity
  */
 #[OA\Schema(
     title: "Order",

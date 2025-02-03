@@ -26,7 +26,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use OpenApi\Attributes as OA;
 
 /**
- * @Route("/api/orders", name="order_")
  * Контроллер для управления заказами.
  *
  * Предоставляет функциональность для создания, получения, обновления и удаления заказов.

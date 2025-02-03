@@ -8,8 +8,6 @@ use OpenApi\Attributes as OA;
  * Класс OrderRequest представляет данные для создания нового заказа.
  *
  * Этот DTO используется для передачи информации о заказе, включая адрес доставки и список товаров.
- *
- * @package App\DTO
  */
 #[OA\Schema(
     title: "OrderRequest",

@@ -19,8 +19,6 @@ use OpenApi\Attributes as OA;
  * - Цена товара на момент оформления заказа
  *
  * Валидация данных осуществляется с использованием групп "OrderItem" и "StrictValidation".
- *
- * @package App\Entity
  */
 #[ORM\Entity(repositoryClass: OrderItemRepository::class)]
 #[GroupSequence(["OrderItem", "StrictValidation"])] // Группы валидации: сначала "OrderItem", потом "StrictValidation"
