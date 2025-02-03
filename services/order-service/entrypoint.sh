@@ -7,7 +7,7 @@ until php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
   sleep 2
 done
 
-sleep 10
+sleep 3
 
 echo "База данных доступна! Накатываю миграции..."
 php bin/console doctrine:migrations:migrate --no-interaction

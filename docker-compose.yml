@@ -36,7 +36,7 @@ services:
       - postgres
       - redis
     volumes:
-      - ./services/product-service:/var/www
+      - ./services/product-service/var:/var/www/var
     environment:
       REDIS_HOST: redis
     ports:
@@ -71,7 +71,7 @@ services:
       - postgres
       - redis
     volumes:
-      - ./services/order-service:/var/www
+      - ./services/order-service/var:/var/www/var
     environment:
       REDIS_HOST: redis
     ports:
@@ -108,7 +108,7 @@ services:
       - nginx-product-service
       - nginx-order-service
     volumes:
-      - ./services/api-gateway:/var/www
+      - ./services/api-gateway/var:/var/www/var
     ports:
       - "9005:9003"  # Для API Gateway
     networks:
