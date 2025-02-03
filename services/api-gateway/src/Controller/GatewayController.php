@@ -14,6 +14,7 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use OpenApi\Attributes as OA;
 
 /**
  * Контроллер API-шлюза для маршрутизации запросов к микросервисам продуктов и заказов.
@@ -26,6 +27,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *
  * @package App\Controller
  */
+
 #[AsController]
 #[Route('/api')]
 readonly class GatewayController
@@ -81,6 +83,147 @@ readonly class GatewayController
         return false;
     }
 
+    #[OA\Get(
+        path: '/api/products',
+        summary: 'Получить список всех продуктов',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Список продуктов',
+                content: new OA\JsonContent(
+                    type: 'array',
+                    items: new OA\Items(
+                        properties: [
+                            new OA\Property(property: 'id', type: 'string', format: 'uuid', example: '0194bd9a-d8b5-7de7-873d-db4907a13836'),
+                            new OA\Property(property: 'name', type: 'string', example: 'Ноутбук ASUS'),
+                            new OA\Property(property: 'description', type: 'string', example: 'Мощный игровой ноутбук.'),
+                            new OA\Property(property: 'price', type: 'number', format: 'float', example: 1499.99),
+                            new OA\Property(
+                                property: 'categories',
+                                type: 'array',
+                                items: new OA\Items(type: 'string', example: 'Электроника')
+                            ),
+                            new OA\Property(property: 'createdAt', type: 'string', format: 'date-time', example: '2024-05-01T12:34:56Z')
+                        ],
+                        type: 'object'
+                    )
+                )
+            )
+        ]
+    )]
+    #[OA\Post(
+        path: '/api/products',
+        summary: 'Создать новый продукт',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name', 'price', 'categories'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'Ноутбук Lenovo'),
+                    new OA\Property(property: 'description', type: 'string', example: 'Ультрабук с SSD на 512 ГБ.'),
+                    new OA\Property(property: 'price', type: 'number', format: 'float', example: 999.99),
+                    new OA\Property(
+                        property: 'categories',
+                        type: 'array',
+                        items: new OA\Items(type: 'string', example: 'Компьютеры')
+                    )
+                ],
+                type: 'object'
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'Продукт создан',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'string', format: 'uuid', example: '0194bd9a-d8b5-7de7-873d-db4907a13836'),
+                        new OA\Property(property: 'message', type: 'string', example: 'Продукт успешно создан')
+                    ],
+                    type: 'object'
+                )
+            ),
+            new OA\Response(response: 400, description: 'Ошибка валидации')
+        ]
+    )]
+    #[Route('/products', name: 'proxy_product_list', methods: ['GET', 'POST'])]
+    public function proxyProductList(Request $request): JsonResponse
+    {
+        return $this->proxyProductService($request);
+    }
+
+    #[OA\Get(
+        path: "/api/products/{id}",
+        summary: "Получить продукт по ID",
+        tags: ["Product Service"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                description: "ID продукта",
+                in: "path",
+                required: false,
+                schema: new OA\Schema(type: "string", format: "uuid")
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Успешный ответ"),
+            new OA\Response(response: 403, description: "Доступ запрещён"),
+            new OA\Response(response: 502, description: "Ошибка сервиса")
+        ]
+    )]
+    #[OA\Put(
+        path: "/api/products/{id}",
+        summary: "Обновить данные продукта",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent()
+        ),
+        tags: ["Product Service"],
+        responses: [
+            new OA\Response(response: 200, description: "Данные обновлены"),
+            new OA\Response(response: 404, description: "Продукт не найден")
+        ]
+    )]
+    #[OA\Delete(
+        path: "/api/products/{id}",
+        summary: "Удалить продукт",
+        tags: ["Product Service"],
+        responses: [
+            new OA\Response(response: 204, description: "Продукт удалён"),
+            new OA\Response(response: 404, description: "Продукт не найден")
+        ]
+    )]
+    #[Route('/products/{id}', name: 'proxy_product_detail', methods: ['GET', 'PUT', 'DELETE'])]
+    public function proxyProductDetail(Request $request, string $id): JsonResponse
+    {
+        return $this->proxyProductService($request, $id);
+    }
+
+    #[OA\Get(
+        path: "/api/products/search",
+        summary: "Поиск продуктов по имени",
+        tags: ["Product Service"],
+        parameters: [
+            new OA\Parameter(
+                name: "name",
+                description: "Имя продукта для поиска",
+                in: "query",
+                required: true,
+                schema: new OA\Schema(type: "string")
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Результаты поиска", content: new OA\JsonContent(type: "array", items: new OA\Items())),
+            new OA\Response(response: 400, description: "Некорректный запрос"),
+            new OA\Response(response: 404, description: "Продукты не найдены")
+        ]
+    )]
+    #[Route('/products/search', name: 'proxy_product_detail', methods: ['GET', 'PUT', 'DELETE'])]
+    public function proxyProductDetailSearch(Request $request, string $id): JsonResponse
+    {
+        return $this->proxyProductService($request, $id);
+    }
+
     /**
      * Проксирует запросы к Product Service.
      *
@@ -89,6 +232,7 @@ readonly class GatewayController
      *
      * @return JsonResponse Ответ от Product Service.
      */
+
     #[Route('/products/{id?}', name: 'proxy_product', methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])]
     public function proxyProductService(Request $request, ?string $id = null): JsonResponse
     {
@@ -141,6 +285,66 @@ readonly class GatewayController
      *
      * @return JsonResponse Ответ от Order Service.
      */
+    #[OA\Get(
+        path: "/api/orders/{id}",
+        summary: "Получить заказ по ID",
+        tags: ["Order Service"],
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                description: "ID заказа",
+                in: "path",
+                required: false,
+                schema: new OA\Schema(type: "string", format: "uuid")
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Успешный ответ"),
+            new OA\Response(response: 403, description: "Доступ запрещён"),
+            new OA\Response(response: 502, description: "Ошибка сервиса")
+        ]
+    )]
+    #[OA\Put(
+        path: "/api/orders/{id}",
+        summary: "Обновить данные заказа",
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent()
+        ),
+        tags: ["Order Service"],
+        responses: [
+            new OA\Response(response: 200, description: "Данные обновлены"),
+            new OA\Response(response: 404, description: "Заказ не найден")
+        ]
+    )]
+    #[OA\Delete(
+        path: "/api/orders/{id}",
+        summary: "Удалить заказ",
+        tags: ["Order Service"],
+        responses: [
+            new OA\Response(response: 204, description: "Заказ удалён"),
+            new OA\Response(response: 404, description: "Заказ не найден")
+        ]
+    )]
+    #[OA\Get(
+        path: "/api/orders/search",
+        summary: "Поиск заказов по ID продукта",
+        tags: ["Order Service"],
+        parameters: [
+            new OA\Parameter(
+                name: "productId",
+                description: "ID продукта для поиска заказов",
+                in: "query",
+                required: true,
+                schema: new OA\Schema(type: "string", format: "uuid")
+            )
+        ],
+        responses: [
+            new OA\Response(response: 200, description: "Результаты поиска", content: new OA\JsonContent(type: "array", items: new OA\Items())),
+            new OA\Response(response: 400, description: "Некорректный запрос"),
+            new OA\Response(response: 404, description: "Заказы не найдены")
+        ]
+    )]
     #[Route('/orders/{id?}', name: 'proxy_order', methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])]
     public function proxyOrderService(Request $request, ?string $id = null): JsonResponse
     {

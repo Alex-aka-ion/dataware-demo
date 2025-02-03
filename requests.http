@@ -10,6 +10,9 @@ Content-Type: application/json
 }
 
 ### Получить список продуктов
+GET http://localhost:51000/api/products
+
+### Получить список продуктов
 GET http://localhost:52000/api/products
 
 ### Создать продукт с некорректными параметрами

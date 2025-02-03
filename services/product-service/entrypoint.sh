@@ -11,7 +11,7 @@ echo "База данных доступна! Накатываю миграци�
 php bin/console doctrine:migrations:migrate --no-interaction
 
 echo "База данных доступна! Накатываю миграции для тестов..."
-php bin/console doctrine:database:create --env=test
+php bin/console doctrine:database:create --env=test --if-not-exists
 php bin/console doctrine:schema:update --force --env=test
 
 echo "База данных доступна! Создаю фейковые товары..."
