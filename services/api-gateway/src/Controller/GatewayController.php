@@ -102,7 +102,7 @@ readonly class GatewayController
             return new JsonResponse(['error' => 'Forbidden'], Response::HTTP_FORBIDDEN);
         }
 
-        $url = 'http://product-service' . $path;
+        $url = 'http://product-service' . $path . ($request->getQueryString() ? '?' . $request->getQueryString() : '');
 
         try {
             $response = $this->httpClient->request(
@@ -154,7 +154,7 @@ readonly class GatewayController
             return new JsonResponse(['error' => 'Forbidden'], Response::HTTP_FORBIDDEN);
         }
 
-        $url = 'http://order-service' . $path;
+        $url = 'http://order-service' . $path . ($request->getQueryString() ? '?' . $request->getQueryString() : '');
 
         try {
             $response = $this->httpClient->request(

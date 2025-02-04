@@ -9,8 +9,11 @@ Content-Type: application/json
   "categories": ["Laptops", "ASUS"]
 }
 
-### Получить список продуктов
+### Получить список продуктов в API Gateway
 GET http://localhost:51000/api/products
+
+### Получить список заказов в API Gateway
+GET http://localhost:51000/api/orders
 
 ### Получить список продуктов
 GET http://localhost:52000/api/products
