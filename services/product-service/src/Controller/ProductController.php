@@ -45,6 +45,7 @@ final class ProductController extends AbstractController
     #[OA\Get(
         path: '/api/products',
         summary: 'Получить список всех продуктов',
+        tags: ['Products'],
         responses: [
             new OA\Response(
                 response: 200,
@@ -70,6 +71,7 @@ final class ProductController extends AbstractController
     #[OA\Get(
         path: '/api/products/search',
         summary: 'Поиск продуктов по имени',
+        tags: ['Products'],
         parameters: [
             new OA\Parameter(
                 name: 'name',
@@ -106,19 +108,55 @@ final class ProductController extends AbstractController
      */
     #[OA\Get(
         path: '/api/products/{id}',
+        operationId: 'getProductById',
+        description: 'Возвращает подробную информацию о продукте по его уникальному идентификатору (UUID).',
         summary: 'Получить продукт по ID',
+        tags: ['Products'],
         parameters: [
             new OA\Parameter(
                 name: 'id',
+                description: 'UUID идентификатор продукта',
                 in: 'path',
                 required: true,
-                schema: new OA\Schema(type: 'string', format: 'uuid')
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+                example: '123e4567-e89b-12d3-a456-426614174000'
             )
         ],
         responses: [
-            new OA\Response(response: 200, description: 'Информация о продукте'),
-            new OA\Response(response: 400, description: 'Некорректный запрос'),
-            new OA\Response(response: 404, description: 'Продукт не найден')
+            new OA\Response(
+                response: 200,
+                description: 'Информация о продукте',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000'),
+                        new OA\Property(property: 'name', type: 'string', example: 'Ноутбук ASUS'),
+                        new OA\Property(property: 'description', type: 'string', example: 'Мощный игровой ноутбук с 16 ГБ оперативной памяти.'),
+                        new OA\Property(property: 'price', type: 'number', format: 'float', example: 1499.99),
+                        new OA\Property(property: 'categories', type: 'array', items: new OA\Items(type: 'string'), example: ['Электроника', 'Компьютеры'])
+                    ],
+                    type: 'object'
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Некорректный формат UUID',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Некорректный формат UUID')
+                    ],
+                    type: 'object'
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Продукт не найден',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Продукт не найден')
+                    ],
+                    type: 'object'
+                )
+            )
         ]
     )]
     #[Route('/{id}', methods: ['GET'])]
@@ -137,6 +175,7 @@ final class ProductController extends AbstractController
 
         return $this->json($product);
     }
+
     /**
      * Создание нового продукта.
      *
@@ -146,14 +185,50 @@ final class ProductController extends AbstractController
      */
     #[OA\Post(
         path: '/api/products',
+        operationId: 'createProduct',
+        description: 'Позволяет создать новый продукт, передав необходимые данные в формате JSON.',
         summary: 'Создать новый продукт',
         requestBody: new OA\RequestBody(
+            description: 'Данные для создания продукта',
             required: true,
-            content: new OA\JsonContent(ref: '#/components/schemas/ProductRequest')
+            content: new OA\JsonContent(
+                required: ['name', 'price', 'categories'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'Ноутбук ASUS'),
+                    new OA\Property(property: 'price', type: 'number', format: 'float', example: 1499.99),
+                    new OA\Property(property: 'categories', type: 'array', items: new OA\Items(type: 'string'), example: ['Электроника', 'Компьютеры']),
+                    new OA\Property(property: 'description', type: 'string', example: 'Мощный игровой ноутбук с 16 ГБ оперативной памяти и SSD на 512 ГБ.')
+                ],
+                type: 'object'
+            )
         ),
+        tags: ['Products'],
         responses: [
-            new OA\Response(response: 201, description: 'Продукт создан'),
-            new OA\Response(response: 400, description: 'Ошибка валидации')
+            new OA\Response(
+                response: 201,
+                description: 'Продукт успешно создан',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000'),
+                        new OA\Property(property: 'name', type: 'string', example: 'Ноутбук ASUS'),
+                        new OA\Property(property: 'price', type: 'number', format: 'float', example: 1499.99),
+                        new OA\Property(property: 'categories', type: 'array', items: new OA\Items(type: 'string'), example: ['Электроника', 'Компьютеры']),
+                        new OA\Property(property: 'description', type: 'string', example: 'Мощный игровой ноутбук.')
+                    ],
+                    type: 'object'
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Ошибка валидации данных',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Некорректный формат JSON'),
+                        new OA\Property(property: 'errors', type: 'array', items: new OA\Items(type: 'string'), example: ['Название продукта не может быть пустым', 'Цена должна быть положительным числом'])
+                    ],
+                    type: 'object'
+                )
+            )
         ]
     )]
     #[Route('', methods: ['POST'])]
@@ -179,12 +254,14 @@ final class ProductController extends AbstractController
             return $this->json(['errors' => $errors], Response::HTTP_BAD_REQUEST);
         }
 
+        $categories = array_map(fn($category) => strip_tags($category), $productRequest->categories);
+
         // Создание объекта Product на основе данных DTO
         $product = new Product();
         $product->setName(strip_tags($productRequest->name));
         $product->setDescription(strip_tags($productRequest->description));
         $product->setPrice($productRequest->price);
-        $product->setCategories($productRequest->categories);
+        $product->setCategories($categories);
 
         $this->entityManager->persist($product);
         $this->entityManager->flush();
@@ -202,23 +279,69 @@ final class ProductController extends AbstractController
      */
     #[OA\Put(
         path: '/api/products/{id}',
+        operationId: 'updateProduct',
+        description: 'Позволяет обновить данные существующего продукта по его UUID.',
         summary: 'Обновить продукт',
         requestBody: new OA\RequestBody(
+            description: 'Данные для обновления продукта',
             required: true,
-            content: new OA\JsonContent(ref: '#/components/schemas/ProductRequest')
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'Обновленный ноутбук ASUS'),
+                    new OA\Property(property: 'price', type: 'number', format: 'float', example: 1599.99),
+                    new OA\Property(property: 'categories', type: 'array', items: new OA\Items(type: 'string'), example: ['Электроника', 'Компьютеры']),
+                    new OA\Property(property: 'description', type: 'string', example: 'Обновленное описание продукта.')
+                ],
+                type: 'object'
+            )
         ),
+        tags: ['Products'],
         parameters: [
             new OA\Parameter(
                 name: 'id',
+                description: 'UUID идентификатор продукта',
                 in: 'path',
                 required: true,
-                schema: new OA\Schema(type: 'string', format: 'uuid')
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+                example: '123e4567-e89b-12d3-a456-426614174000'
             )
         ],
         responses: [
-            new OA\Response(response: 200, description: 'Продукт обновлён'),
-            new OA\Response(response: 400, description: 'Некорректный запрос'),
-            new OA\Response(response: 404, description: 'Продукт не найден')
+            new OA\Response(
+                response: 200,
+                description: 'Продукт успешно обновлен',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'id', type: 'string', format: 'uuid', example: '123e4567-e89b-12d3-a456-426614174000'),
+                        new OA\Property(property: 'name', type: 'string', example: 'Обновленный ноутбук ASUS'),
+                        new OA\Property(property: 'price', type: 'number', format: 'float', example: 1599.99),
+                        new OA\Property(property: 'categories', type: 'array', items: new OA\Items(type: 'string'), example: ['Электроника', 'Компьютеры']),
+                        new OA\Property(property: 'description', type: 'string', example: 'Обновленное описание продукта.')
+                    ],
+                    type: 'object'
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: 'Некорректный запрос или ошибка валидации данных',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Некорректный формат JSON'),
+                        new OA\Property(property: 'errors', type: 'array', items: new OA\Items(type: 'string'), example: ['Название продукта не может быть пустым', 'Цена должна быть положительным числом'])
+                    ],
+                    type: 'object'
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: 'Продукт не найден',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Продукт не найден')
+                    ],
+                    type: 'object'
+                )
+            )
         ]
     )]
     #[Route('/{id}', methods: ['PUT'])]
@@ -260,10 +383,11 @@ final class ProductController extends AbstractController
             $product->setDescription(strip_tags($productRequest->description));
         }
         if (isset($data['price'])) {
-            $product->setPrice((float)$data['price']);
+            $product->setPrice((float)$productRequest->price);
         }
         if (isset($data['categories'])) {
-            $product->setCategories($data['categories']);
+            $categories = array_map(fn($category) => strip_tags($category), $productRequest->categories);
+            $product->setCategories($categories);
         }
 
         $errors = $validator->validate($product);
@@ -285,12 +409,15 @@ final class ProductController extends AbstractController
     #[OA\Delete(
         path: '/api/products/{id}',
         summary: 'Удалить продукт',
+        tags: ['Products'],
         parameters: [
             new OA\Parameter(
                 name: 'id',
+                description: 'UUID идентификатор продукта',
                 in: 'path',
                 required: true,
-                schema: new OA\Schema(type: 'string', format: 'uuid')
+                schema: new OA\Schema(type: 'string', format: 'uuid'),
+                example: '123e4567-e89b-12d3-a456-426614174000'
             )
         ],
         responses: [

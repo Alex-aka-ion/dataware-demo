@@ -17,7 +17,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
@@ -34,15 +33,19 @@ use OpenApi\Attributes as OA;
 class OrderController extends AbstractController
 {
     /**
+     * @param EntityManagerInterface $entityManager Менеджер сущностей Doctrine для работы с БД.
      * @param HttpClientInterface $httpClient HTTP-клиент для взаимодействия с внешними сервисами.
      * @param OrderRepository $orderRepository Репозиторий для работы с заказами.
+     * @param LoggerInterface $logger Объект логирования
      */
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly HttpClientInterface $httpClient,
-        private readonly OrderRepository $orderRepository,
-        private readonly LoggerInterface $logger
-    ) {}
+        private readonly HttpClientInterface    $httpClient,
+        private readonly OrderRepository        $orderRepository,
+        private readonly LoggerInterface        $logger
+    )
+    {
+    }
 
     /**
      * Получить список всех заказов.
@@ -52,6 +55,7 @@ class OrderController extends AbstractController
     #[OA\Get(
         path: '/api/orders',
         summary: 'Получить список всех заказов',
+        tags: ['Orders'],
         responses: [
             new OA\Response(
                 response: 200,
@@ -85,6 +89,7 @@ class OrderController extends AbstractController
             required: true,
             content: new OA\JsonContent(ref: '#/components/schemas/OrderRequest')
         ),
+        tags: ['Orders'],
         responses: [
             new OA\Response(
                 response: 201,
@@ -169,7 +174,7 @@ class OrderController extends AbstractController
             $orderItem = new OrderItem();
 
             $productId = $productData['productId'];
-            $quantity = (int) $productData['quantity'];
+            $quantity = (int)$productData['quantity'];
 
             $orderItem->setProductId($productId);
             $orderItem->setQuantity($quantity);
@@ -189,7 +194,7 @@ class OrderController extends AbstractController
                 }
 
                 $productInfo = json_decode($productResponse->getContent(), true);
-                $orderItem->setPrice((float) $productInfo['price']);
+                $orderItem->setPrice((float)$productInfo['price']);
             } catch (ClientExceptionInterface $e) {
                 $this->logger->error('Client error occurred', ['message' => $e->getMessage(), 'url' => $url]);
                 return new JsonResponse(['error' => 'Product-service недоступен. Client error'], Response::HTTP_BAD_REQUEST);
@@ -202,9 +207,6 @@ class OrderController extends AbstractController
             } catch (TransportExceptionInterface $e) {
                 $this->logger->error('Transport error occurred', ['message' => $e->getMessage(), 'url' => $url]);
                 return new JsonResponse(['error' => 'Product-service недоступен. Transport error'], Response::HTTP_SERVICE_UNAVAILABLE);
-            } catch (DecodingExceptionInterface $e) {
-                $this->logger->error('Decoding error occurred', ['message' => $e->getMessage(), 'url' => $url]);
-                return new JsonResponse(['error' => 'Product-service недоступен. Decoding error'], Response::HTTP_BAD_REQUEST);
             } catch (\Exception $e) {
                 $this->logger->error('Unexpected error occurred', ['message' => $e->getMessage(), 'url' => $url]);
                 return new JsonResponse(['error' => 'Product-service недоступен. Unexpected error'], Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -248,6 +250,7 @@ class OrderController extends AbstractController
     #[OA\Get(
         path: '/api/orders/search',
         summary: 'Найти заказы по ID товара',
+        tags: ['Orders'],
         parameters: [
             new OA\Parameter(
                 name: 'productId',
@@ -296,6 +299,7 @@ class OrderController extends AbstractController
     #[OA\Get(
         path: '/api/orders/{id}',
         summary: 'Получить заказ по ID',
+        tags: ['Orders'],
         parameters: [
             new OA\Parameter(
                 name: 'id',
@@ -340,6 +344,7 @@ class OrderController extends AbstractController
             required: true,
             content: new OA\JsonContent(ref: '#/components/schemas/UpdateOrderRequest')
         ),
+        tags: ['Orders'],
         parameters: [
             new OA\Parameter(
                 name: 'id',
@@ -382,7 +387,7 @@ class OrderController extends AbstractController
 
         $errors = $validator->validate($updateOrderRequest);
         if (count($errors) > 0) {
-            return $this->json(['errors' => (string) $errors], Response::HTTP_BAD_REQUEST);
+            return $this->json(['errors' => (string)$errors], Response::HTTP_BAD_REQUEST);
         }
 
         $order->setDeliveryAddress(strip_tags($updateOrderRequest->deliveryAddress));
@@ -400,6 +405,7 @@ class OrderController extends AbstractController
     #[OA\Delete(
         path: '/api/orders/{id}',
         summary: 'Удалить заказ',
+        tags: ['Orders'],
         parameters: [
             new OA\Parameter(
                 name: 'id',
