@@ -27,6 +27,9 @@ RUN chown -R www-data:www-data /var/www
 # Устанавливаем зависимости (Composer)
 RUN composer install --no-interaction --optimize-autoloader
 
+# Создание симлинка для Swagger UI
+RUN ln -s /var/www/vendor/swagger-api/swagger-ui/dist /var/www/public/bundles/swagger-ui
+
 # Настройка прав доступа
 RUN chown -R www-data:www-data /var/www
 

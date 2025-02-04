@@ -6,7 +6,7 @@ require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
 
 // Редирект на /api/doc, если запрошен корневой путь
 if ($_SERVER['REQUEST_URI'] === '/') {
-    header('Location: /api/doc');
+    header('Location: /swagger');
     exit();
 }
 
