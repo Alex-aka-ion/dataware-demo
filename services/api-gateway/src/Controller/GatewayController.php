@@ -14,7 +14,6 @@ use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use OpenApi\Attributes as OA;
 
 /**
  * Контроллер API-шлюза для маршрутизации запросов к микросервисам продуктов и заказов.
@@ -24,10 +23,7 @@ use OpenApi\Attributes as OA;
  * - **Order Service**: операции с заказами (создание, получение, обновление, удаление).
  *
  * Контроллер также ограничивает доступ к определённым маршрутам и методам в соответствии с настройками разрешений.
- *
- * @package App\Controller
  */
-
 #[AsController]
 #[Route('/api')]
 readonly class GatewayController
@@ -43,6 +39,7 @@ readonly class GatewayController
      * Конструктор GatewayController.
      *
      * @param HttpClientInterface $httpClient HTTP-клиент для отправки проксируемых запросов.
+     * @param LoggerInterface $logger Объект для логирования.
      */
     public function __construct(
         private HttpClientInterface $httpClient,
@@ -91,7 +88,6 @@ readonly class GatewayController
      *
      * @return JsonResponse Ответ от Product Service.
      */
-
     #[Route('/products/{id?}', name: 'proxy_product', methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'])]
     public function proxyProductService(Request $request, ?string $id = null): JsonResponse
     {
