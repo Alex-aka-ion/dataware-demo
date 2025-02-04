@@ -8,6 +8,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "nelmio/api-doc-bundle": "^4.36",
+        "swagger-api/swagger-ui": "^5.18",
         "symfony/asset": "7.2.*",
         "symfony/console": "7.2.*",
         "symfony/dotenv": "7.2.*",

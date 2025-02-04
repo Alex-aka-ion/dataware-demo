@@ -74,9 +74,7 @@ docker exec -it php-fpm-order-service bin/phpunit
 - **Order Service:** [http://localhost:53000/api/doc](http://localhost:53000/api/doc)
 
 Либо через Api-gateway:
-- **Product Service:** [http://localhost:51000/api/doc-product-service](http://localhost:51000/api/doc-product-service)
-- **Order Service:** [http://localhost:51000/api/doc-order-service](http://localhost:51000/api/doc-order-service)
-
+http://localhost:51000/swagger/
 ---
 
 ## 🚓 Полезные команды
