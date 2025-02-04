@@ -96,7 +96,43 @@ class OrderController extends AbstractController
                     ]
                 )
             ),
-            new OA\Response(response: 400, description: 'Ошибка валидации')
+            new OA\Response(
+                response: 400,
+                description: 'Ошибка валидации или некорректный формат данных',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Некорректный формат JSON'),
+                        new OA\Property(property: 'errors', type: 'array', items: new OA\Items(type: 'string'))
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 502,
+                description: 'Ошибка перенаправления (Redirection error)',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Product-service недоступен. Redirection error')
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 503,
+                description: 'Ошибка транспортного уровня (Transport error)',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Product-service недоступен. Transport error')
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 500,
+                description: 'Внутренняя ошибка сервера (Server error или Unexpected error)',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'error', type: 'string', example: 'Product-service недоступен. Server error')
+                    ]
+                )
+            )
         ]
     )]
     #[Route('', methods: ['POST'])]
